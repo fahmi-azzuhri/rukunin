@@ -36,8 +36,6 @@ import type {
   Resident,
   AuthUser,
 } from "./lib/api";
-import "./App.css";
-
 const rtId = 1;
 type Role = AuthUser["role"];
 
@@ -377,62 +375,92 @@ function Dashboard({
   );
 
   return (
-    <main className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">R</span>
+    <main className="flex min-h-screen bg-[#f7f9f6] font-sans text-[#172522]">
+      <aside className="flex w-[250px] shrink-0 flex-col bg-[#17382e] px-[18px] pb-5 pt-7 text-[#d6e5dc] max-[800px]:w-[68px] max-[800px]:px-2.5 max-[800px]:py-5">
+        <div className="flex items-center gap-2.5 px-3 pb-[47px] text-[21px] font-extrabold tracking-[-0.7px] text-white max-[800px]:px-[9px] max-[800px]:pb-[35px]">
+          <span className="grid size-[29px] place-items-center rounded-[9px_9px_9px_2px] bg-[#e87e42] font-mono text-[15px] text-white">
+            R
+          </span>
           <span>rukunin</span>
         </div>
-        <div className="workspace-label">AREA KERJA</div>
-        <div className="area-switcher">
-          <span className="status-dot" /> RT 01{" "}
-          <span className="chevron">v</span>
-          <small>RW 01</small>
+        <div className="px-[13px] pb-2.5 font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#78968a] max-[800px]:text-[0px]">
+          AREA KERJA
         </div>
-        <nav className="nav-list" aria-label="Navigasi utama">
+        <div className="relative flex items-center gap-2 rounded-lg border border-[#3b6b57] bg-[#285442] p-3 text-[13px] font-bold text-white max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-3.5">
+          <span className="size-[7px] rounded-full bg-[#f4b85c]" /> RT 01{" "}
+          <span className="ml-auto text-[#a3c3b2] max-[800px]:hidden">v</span>
+          <small className="absolute bottom-2 left-[27px] text-[10px] font-medium text-[#9ab4a7] max-[800px]:hidden">
+            RW 01
+          </small>
+        </div>
+        <nav className="mt-[33px] grid gap-1.5" aria-label="Navigasi utama">
           <NavLink
-            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
+            }
             to="/warga"
           >
-            <span>01</span> Warga
+            <span className="max-[800px]:text-[10px]">01</span> Warga
           </NavLink>
           <NavLink
-            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
+            }
             to="/iuran"
           >
-            <span>02</span> Iuran
+            <span className="max-[800px]:text-[10px]">02</span> Iuran
           </NavLink>
           <NavLink
-            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
+            }
             to="/kas"
           >
-            <span>03</span> Kas RT
+            <span className="max-[800px]:text-[10px]">03</span> Kas RT
           </NavLink>
           <NavLink
-            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
+            }
             to="/pengumuman"
           >
-            <span>04</span> Pengumuman
+            <span className="max-[800px]:text-[10px]">04</span> Pengumuman
           </NavLink>
         </nav>
-        <div className="sidebar-footer">
-          <div className="avatar">BS</div>
-          <div>
-            <strong>{user.name}</strong>
-            <small>{roleLabels[role]}</small>
+        <div className="mt-auto flex items-center gap-2.5 border-t border-[#315646] px-2 pb-0 pt-[18px] text-[11px] max-[800px]:justify-center max-[800px]:px-0">
+          <div className="grid size-8 place-items-center rounded-full bg-[#e8a266] font-mono text-[11px] text-[#673a1d]">
+            BS
           </div>
-          <span className="more">...</span>
+          <div>
+            <strong className="block text-[11px] text-white max-[800px]:hidden">
+              {user.name}
+            </strong>
+            <small className="mt-[3px] block text-[#87a698] max-[800px]:hidden">
+              {roleLabels[role]}
+            </small>
+          </div>
+          <span className="ml-auto tracking-[2px] text-[#8ca99b] max-[800px]:hidden">
+            ...
+          </span>
         </div>
-        <button className="logout-button" onClick={onLogout}>
+        <button
+          className="mt-2.5 rounded-[5px] border border-[#3b6b57] bg-transparent px-[9px] py-[7px] text-[10px] text-[#b8cec0]"
+          onClick={onLogout}
+        >
           Keluar
         </button>
       </aside>
 
-      <section className="content" id="warga">
-        <header className="topbar">
+      <section
+        className="min-w-0 max-w-[1170px] flex-1 px-[54px] pb-[70px] pt-[43px] max-[800px]:px-5 max-[800px]:pb-[50px] max-[800px]:pt-[29px]"
+        id="warga"
+      >
+        <header className="flex items-center justify-between">
           <div>
-            <span className="eyebrow">SELASA, 19 AGUSTUS 2026</span>
-            <h1>
+            <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+              SELASA, 19 AGUSTUS 2026
+            </span>
+            <h1 className="mt-2.5 text-[34px] tracking-[-1.5px] max-[800px]:text-[28px]">
               {activePage === "warga"
                 ? "Data warga"
                 : activePage === "iuran"
@@ -442,40 +470,57 @@ function Dashboard({
                     : "Pengumuman"}
             </h1>
           </div>
-          <div className="top-actions">
-            <button className="icon-button" aria-label="Notifikasi">
+          <div className="flex items-center gap-3.5 max-[500px]:gap-2">
+            <button
+              className="size-[34px] rounded-full border border-[#e1e7e2] bg-transparent font-extrabold text-[#78847f]"
+              aria-label="Notifikasi"
+            >
               !
             </button>
-            <div className="user-chip">
-              <span className="avatar small">BS</span>
-              <span>{roleLabels[role]}</span>
+            <div className="flex items-center gap-3.5 border-l border-[#e1e7e2] pl-[18px] text-xs font-bold text-[#57655f]">
+              <span className="grid size-[30px] place-items-center rounded-full bg-[#e8a266] font-mono text-[10px] text-[#673a1d]">
+                BS
+              </span>
+              <span className="max-[500px]:hidden">{roleLabels[role]}</span>
             </div>
           </div>
         </header>
         {activePage === "pengumuman" && (
-          <section className="contribution-section" id="pengumuman">
-            <div className="section-heading">
+          <section
+            className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
+            id="pengumuman"
+          >
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
               <div>
-                <span className="eyebrow">KOMUNIKASI RT 01</span>
-                <h2>Pengumuman</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KOMUNIKASI RT 01
+                </span>
+                <h2 className="mt-2 text-lg tracking-[-0.5px]">Pengumuman</h2>
               </div>
               {canManageAnnouncements && (
                 <button
-                  className="primary-button"
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
                   onClick={() => setIsAnnouncementFormOpen(true)}
                 >
                   <span>+</span> Buat pengumuman
                 </button>
               )}
             </div>
-            <div className="announcement-list">
+            <div className="grid gap-0">
               {announcements.length === 0 ? (
-                <div className="empty-state">Belum ada pengumuman.</div>
+                <div className="p-8 text-center text-xs text-[#78847f]">
+                  Belum ada pengumuman.
+                </div>
               ) : (
                 announcements.map((announcement) => (
-                  <article className="announcement-item" key={announcement.id}>
-                    <div className="announcement-meta">
-                      <span className="role-tag">RT 01</span>
+                  <article
+                    className="border-b border-[#e1e7e2] px-[23px] py-[22px] last:border-b-0"
+                    key={announcement.id}
+                  >
+                    <div className="flex items-center gap-[9px] text-[11px] text-[#78847f]">
+                      <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
+                        RT 01
+                      </span>
                       <span>
                         {announcement.created_at
                           ? new Date(
@@ -484,9 +529,13 @@ function Dashboard({
                           : "Baru saja"}
                       </span>
                     </div>
-                    <h3>{announcement.title}</h3>
-                    <p>{announcement.content}</p>
-                    <small>
+                    <h3 className="mb-1.5 mt-[11px] text-base text-[#172522]">
+                      {announcement.title}
+                    </h3>
+                    <p className="mb-2.5 whitespace-pre-wrap text-xs leading-[1.7] text-[#65736c]">
+                      {announcement.content}
+                    </p>
+                    <small className="text-[10px] text-[#9aa69f]">
                       Oleh {announcement.created_by || "Pengurus RT"}
                     </small>
                   </article>
@@ -496,13 +545,13 @@ function Dashboard({
           </section>
         )}
         {activePage === "warga" && (
-          <div className="page-content">
-            <div className="intro-row">
+          <div>
+            <div className="my-[30px] flex items-center justify-between text-[13px] text-[#78847f] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
               <p>Kelola data warga dan rumah di lingkungan RT 01.</p>
-              <div className="intro-actions">
+              <div className="flex gap-[9px]">
                 {canManageResidents && (
                   <button
-                    className="secondary-button"
+                    className="inline-flex items-center gap-[9px] rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                     onClick={() => {
                       setEditingHouse(null);
                       setIsHouseFormOpen(true);
@@ -513,7 +562,7 @@ function Dashboard({
                 )}
                 {canManageResidents && (
                   <button
-                    className="primary-button"
+                    className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
                     onClick={() => setIsFormOpen(true)}
                   >
                     <span>+</span> Tambah warga
@@ -522,42 +571,65 @@ function Dashboard({
               </div>
             </div>
             {error && (
-              <div className="notice">
+              <div className="mb-5 rounded-[6px] border border-[#f0d6a8] bg-[#fff6e7] px-[15px] py-3 text-xs text-[#825e2d]">
                 <strong>Gagal memproses permintaan.</strong> {error}{" "}
                 <button onClick={() => void loadData()}>Coba lagi</button>
               </div>
             )}
-            <section className="stats-grid" aria-label="Ringkasan data">
-              <article className="stat-card accent">
-                <span className="stat-label">TOTAL WARGA</span>
-                <strong>{isLoading ? "--" : residents.length}</strong>
-                <span className="stat-note">terdata di RT 01</span>
+            <section
+              className="grid grid-cols-3 gap-[15px] max-[800px]:grid-cols-1"
+              aria-label="Ringkasan data"
+            >
+              <article className="min-h-[135px] rounded-[7px] border border-t-[3px] border-[#e1e7e2] border-t-[#e87e42] bg-white px-[21px] py-5">
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  TOTAL WARGA
+                </span>
+                <strong className="mt-[13px] block text-[33px] tracking-[-1px]">
+                  {isLoading ? "--" : residents.length}
+                </strong>
+                <span className="text-[11px] text-[#9ba49f]">
+                  terdata di RT 01
+                </span>
               </article>
-              <article className="stat-card">
-                <span className="stat-label">TOTAL RUMAH</span>
-                <strong>{isLoading ? "--" : houses.length}</strong>
-                <span className="stat-note">rumah terdaftar</span>
+              <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  TOTAL RUMAH
+                </span>
+                <strong className="mt-[13px] block text-[33px] tracking-[-1px]">
+                  {isLoading ? "--" : houses.length}
+                </strong>
+                <span className="text-[11px] text-[#9ba49f]">
+                  rumah terdaftar
+                </span>
               </article>
-              <article className="stat-card">
-                <span className="stat-label">KEPALA KELUARGA</span>
-                <strong>
+              <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  KEPALA KELUARGA
+                </span>
+                <strong className="mt-[13px] block text-[33px] tracking-[-1px]">
                   {isLoading
                     ? "--"
                     : residents.filter(
                         (resident) => resident.status === "Kepala Keluarga",
                       ).length}
                 </strong>
-                <span className="stat-note">dari total warga</span>
+                <span className="text-[11px] text-[#9ba49f]">
+                  dari total warga
+                </span>
               </article>
             </section>
-            <section className="table-panel">
-              <div className="panel-heading">
+            <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
+              <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[18px]">
                 <div>
-                  <span className="eyebrow">DATABASE RT 01</span>
-                  <h2>Daftar warga</h2>
+                  <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                    DATABASE RT 01
+                  </span>
+                  <h2 className="mt-2 text-lg tracking-[-0.5px]">
+                    Daftar warga
+                  </h2>
                 </div>
-                <div className="table-tools">
-                  <label className="search-box">
+                <div className="flex items-center gap-2.5 max-[800px]:w-full">
+                  <label className="flex flex-1 items-center gap-2 rounded-[5px] border border-[#e1e7e2] px-2.5 py-2 text-[#9aa69f]">
                     <span>/</span>
                     <input
                       value={search}
@@ -565,13 +637,13 @@ function Dashboard({
                       placeholder="Cari nama atau NIK..."
                     />
                   </label>
-                  <button className="filter-button">
+                  <button className="rounded-[5px] border border-[#d3ddd6] bg-transparent px-3 py-2 text-[11px] font-bold text-[#57655f] max-[800px]:px-2.5">
                     Filter <span>v</span>
                   </button>
                 </div>
               </div>
-              <div className="table-wrap">
-                <table>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr>
                       <th>WARGA</th>
@@ -585,13 +657,19 @@ function Dashboard({
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={6} className="empty-state">
+                        <td
+                          colSpan={6}
+                          className="p-8 text-center text-xs text-[#78847f]"
+                        >
                           Memuat data warga...
                         </td>
                       </tr>
                     ) : filteredResidents.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="empty-state">
+                        <td
+                          colSpan={6}
+                          className="p-8 text-center text-xs text-[#78847f]"
+                        >
                           Belum ada data warga.
                         </td>
                       </tr>
@@ -599,8 +677,8 @@ function Dashboard({
                       filteredResidents.map((resident) => (
                         <tr key={resident.id}>
                           <td>
-                            <div className="person">
-                              <span className="person-avatar">
+                            <div className="flex items-center gap-2.5">
+                              <span className="grid size-8 place-items-center rounded-full bg-[#dcefe3] font-mono text-xs font-bold text-[#236b4a]">
                                 {resident.name.slice(0, 1).toUpperCase()}
                               </span>
                               <strong>{resident.name}</strong>
@@ -608,13 +686,13 @@ function Dashboard({
                           </td>
                           <td>{resident.nik || "-"}</td>
                           <td>
-                            <span className="house-tag">
+                            <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
                               {houseNumber.get(resident.house_id) ??
                                 `#${resident.house_id}`}
                             </span>
                           </td>
                           <td>
-                            <span className="role-tag">
+                            <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
                               {resident.status || "Anggota"}
                             </span>
                           </td>
@@ -626,7 +704,7 @@ function Dashboard({
                                   setEditingResident(resident);
                                   setIsFormOpen(true);
                                 }}
-                                className="row-menu"
+                                className="border-0 bg-transparent text-xs font-bold text-[#78847f]"
                                 aria-label={`Opsi ${resident.name}`}
                               >
                                 Edit
@@ -634,7 +712,7 @@ function Dashboard({
                             )}
                             {canManageResidents && (
                               <button
-                                className="row-menu danger"
+                                className="ml-2 border-0 bg-transparent text-xs font-bold text-[#b94b3e]"
                                 onClick={() =>
                                   void handleDeleteResident(resident)
                                 }
@@ -650,15 +728,19 @@ function Dashboard({
                 </table>
               </div>
             </section>
-            <section className="table-panel house-panel">
-              <div className="panel-heading">
+            <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
+              <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
                 <div>
-                  <span className="eyebrow">DATA PROPERTI RT 01</span>
-                  <h2>Daftar rumah</h2>
+                  <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                    DATA PROPERTI RT 01
+                  </span>
+                  <h2 className="mt-2 text-lg tracking-[-0.5px]">
+                    Daftar rumah
+                  </h2>
                 </div>
               </div>
-              <div className="table-wrap">
-                <table>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr>
                       <th>NOMOR RUMAH</th>
@@ -669,7 +751,10 @@ function Dashboard({
                   <tbody>
                     {houses.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="empty-state">
+                        <td
+                          colSpan={3}
+                          className="p-8 text-center text-xs text-[#78847f]"
+                        >
                           Belum ada rumah.
                         </td>
                       </tr>
@@ -677,7 +762,9 @@ function Dashboard({
                       houses.map((house) => (
                         <tr key={house.id}>
                           <td>
-                            <span className="house-tag">{house.number}</span>
+                            <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
+                              {house.number}
+                            </span>
                           </td>
                           <td>
                             {house.residents?.length ??
@@ -689,7 +776,7 @@ function Dashboard({
                           <td>
                             {canManageResidents && (
                               <button
-                                className="row-menu"
+                                className="border-0 bg-transparent text-xs font-bold text-[#78847f]"
                                 onClick={() => {
                                   setEditingHouse(house);
                                   setIsHouseFormOpen(true);
@@ -700,7 +787,7 @@ function Dashboard({
                             )}
                             {canManageResidents && (
                               <button
-                                className="row-menu danger"
+                                className="ml-2 border-0 bg-transparent text-xs font-bold text-[#b94b3e]"
                                 onClick={() => void handleDeleteHouse(house)}
                               >
                                 Hapus
@@ -715,21 +802,25 @@ function Dashboard({
               </div>
             </section>
             {role === "ketua" && (
-              <section className="table-panel house-panel">
-                <div className="panel-heading">
+              <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
+                <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
                   <div>
-                    <span className="eyebrow">PENGELOLA RT</span>
-                    <h2>Akun akses</h2>
+                    <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                      PENGELOLA RT
+                    </span>
+                    <h2 className="mt-2 text-lg tracking-[-0.5px]">
+                      Akun akses
+                    </h2>
                   </div>
                   <button
-                    className="primary-button"
+                    className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
                     onClick={() => setIsUserFormOpen(true)}
                   >
                     <span>+</span> Buat akun
                   </button>
                 </div>
-                <div className="table-wrap">
-                  <table>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-xs">
                     <thead>
                       <tr>
                         <th>NAMA</th>
@@ -740,7 +831,10 @@ function Dashboard({
                     <tbody>
                       {users.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="empty-state">
+                          <td
+                            colSpan={3}
+                            className="p-8 text-center text-xs text-[#78847f]"
+                          >
                             Belum ada akun tambahan.
                           </td>
                         </tr>
@@ -752,7 +846,7 @@ function Dashboard({
                             </td>
                             <td>{account.username}</td>
                             <td>
-                              <span className="role-tag">
+                              <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
                                 {roleLabels[account.role]}
                               </span>
                             </td>
@@ -768,33 +862,46 @@ function Dashboard({
         )}
 
         {activePage === "iuran" && (
-          <section className="contribution-section" id="iuran">
-            <div className="section-heading">
+          <section
+            className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
+            id="iuran"
+          >
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
               <div>
-                <span className="eyebrow">KEUANGAN RT 01</span>
-                <h2>Iuran warga</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KEUANGAN RT 01
+                </span>
+                <h2 className="mt-2 text-lg tracking-[-0.5px]">Iuran warga</h2>
               </div>
               {canManageFinance && (
                 <button
-                  className="primary-button"
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
                   onClick={() => setIsContributionFormOpen(true)}
                 >
                   <span>+</span> Catat pembayaran
                 </button>
               )}
             </div>
-            <div className="contribution-summary">
+            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[800px]:gap-[35px]">
               <div>
-                <span className="stat-label">TOTAL TERCATAT</span>
-                <strong>Rp {totalContributions.toLocaleString("id-ID")}</strong>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  TOTAL TERCATAT
+                </span>
+                <strong className="mt-2 block text-xl">
+                  Rp {totalContributions.toLocaleString("id-ID")}
+                </strong>
               </div>
               <div>
-                <span className="stat-label">PEMBAYARAN</span>
-                <strong>{contributions.length}</strong>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  PEMBAYARAN
+                </span>
+                <strong className="mt-2 block text-xl">
+                  {contributions.length}
+                </strong>
               </div>
             </div>
-            <div className="table-wrap">
-              <table>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
                 <thead>
                   <tr>
                     <th>WARGA</th>
@@ -806,7 +913,10 @@ function Dashboard({
                 <tbody>
                   {contributions.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="empty-state">
+                      <td
+                        colSpan={4}
+                        className="p-8 text-center text-xs text-[#78847f]"
+                      >
                         Belum ada pembayaran iuran.
                       </td>
                     </tr>
@@ -827,7 +937,7 @@ function Dashboard({
                           Rp {contribution.amount.toLocaleString("id-ID")}
                         </td>
                         <td>
-                          <span className="role-tag">
+                          <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
                             {contribution.status || "Paid"}
                           </span>
                         </td>
@@ -841,37 +951,48 @@ function Dashboard({
         )}
 
         {activePage === "kas" && (
-          <section className="contribution-section" id="kas">
-            <div className="section-heading">
+          <section
+            className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
+            id="kas"
+          >
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
               <div>
-                <span className="eyebrow">KEUANGAN RT 01</span>
-                <h2>Kas RT</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KEUANGAN RT 01
+                </span>
+                <h2 className="mt-2 text-lg tracking-[-0.5px]">Kas RT</h2>
               </div>
               {canManageFinance && (
                 <button
-                  className="primary-button"
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
                   onClick={() => setIsExpenseFormOpen(true)}
                 >
                   <span>+</span> Catat pengeluaran
                 </button>
               )}
             </div>
-            <div className="contribution-summary">
+            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[800px]:gap-[35px]">
               <div>
-                <span className="stat-label">SALDO BERJALAN</span>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  SALDO BERJALAN
+                </span>
                 <strong
-                  className={currentBalance < 0 ? "negative-balance" : ""}
+                  className={`mt-2 block text-xl ${currentBalance < 0 ? "text-[#b94b3e]" : "text-[#172522]"}`}
                 >
                   Rp {currentBalance.toLocaleString("id-ID")}
                 </strong>
               </div>
               <div>
-                <span className="stat-label">TOTAL PENGELUARAN</span>
-                <strong>Rp {totalExpenses.toLocaleString("id-ID")}</strong>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                  TOTAL PENGELUARAN
+                </span>
+                <strong className="mt-2 block text-xl">
+                  Rp {totalExpenses.toLocaleString("id-ID")}
+                </strong>
               </div>
             </div>
-            <div className="table-wrap">
-              <table>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
                 <thead>
                   <tr>
                     <th>KETERANGAN</th>
@@ -883,7 +1004,10 @@ function Dashboard({
                 <tbody>
                   {expenses.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="empty-state">
+                      <td
+                        colSpan={4}
+                        className="p-8 text-center text-xs text-[#78847f]"
+                      >
                         Belum ada pengeluaran.
                       </td>
                     </tr>
@@ -894,7 +1018,7 @@ function Dashboard({
                           <strong>{expense.description}</strong>
                         </td>
                         <td>
-                          <span className="house-tag">
+                          <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
                             {expense.category || "Lainnya"}
                           </span>
                         </td>
@@ -915,22 +1039,27 @@ function Dashboard({
       </section>
 
       {isFormOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal"
+            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24] [&_form]:grid [&_form]:gap-[15px] [&_label]:grid [&_label]:gap-1.5 [&_label]:text-[11px] [&_label]:font-bold [&_label]:text-[#68766f] [&_input]:rounded-[5px] [&_input]:border [&_input]:border-[#e1e7e2] [&_input]:p-[11px] [&_input]:text-[13px] [&_input]:outline-0 [&_select]:rounded-[5px] [&_select]:border [&_select]:border-[#e1e7e2] [&_select]:bg-white [&_select]:p-[11px] [&_select]:text-[13px] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:rounded-[5px] [&_textarea]:border [&_textarea]:border-[#e1e7e2] [&_textarea]:p-2.5 [&_textarea]:text-xs"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
-                <span className="eyebrow">DATA BARU</span>
-                <h2 id="modal-title">
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  DATA BARU
+                </span>
+                <h2 className="mt-2 text-lg tracking-[-0.5px]" id="modal-title">
                   {editingResident ? "Edit warga" : "Tambah warga"}
                 </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsFormOpen(false)}
                 aria-label="Tutup"
               >
@@ -956,7 +1085,7 @@ function Dashboard({
                   defaultValue={editingResident?.nik ?? ""}
                 />
               </label>
-              <div className="form-row">
+              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
                 <label>
                   No. rumah
                   <select
@@ -1004,10 +1133,10 @@ function Dashboard({
                   defaultValue={editingResident?.no_kk ?? ""}
                 />
               </label>
-              <div className="modal-actions">
+              <div className="mt-6 flex justify-end gap-2.5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => {
                     setIsFormOpen(false);
                     setEditingResident(null);
@@ -1015,7 +1144,10 @@ function Dashboard({
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving
                     ? "Menyimpan..."
                     : editingResident
@@ -1029,20 +1161,30 @@ function Dashboard({
       )}
 
       {isUserFormOpen && role === "ketua" && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal"
+            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="user-modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
-                <span className="eyebrow">AKUN PENGGUNA</span>
-                <h2 id="user-modal-title">Buat akun & role</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  AKUN PENGGUNA
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="user-modal-title"
+                >
+                  Buat akun & role
+                </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsUserFormOpen(false)}
                 aria-label="Tutup"
               >
@@ -1072,7 +1214,7 @@ function Dashboard({
                   placeholder="Minimal 6 karakter"
                 />
               </label>
-              <div className="form-row">
+              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
                 <label>
                   Role
                   <select required name="role" defaultValue="warga">
@@ -1094,15 +1236,18 @@ function Dashboard({
                   </select>
                 </label>
               </div>
-              <div className="modal-actions">
+              <div className="mt-6 flex justify-end gap-2.5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => setIsUserFormOpen(false)}
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving ? "Menyimpan..." : "Buat akun"}
                 </button>
               </div>
@@ -1112,43 +1257,55 @@ function Dashboard({
       )}
 
       {isHouseFormOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal modal-small"
+            className="max-h-[calc(100vh_-_40px)] w-[min(420px,100%)] overflow-y-auto rounded-[14px] bg-white shadow-[0_24px_70px_#17382e30]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="house-modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-0 flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
               <div>
-                <span className="eyebrow">DATA RUMAH</span>
-                <h2 id="house-modal-title">
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  DATA RUMAH
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="house-modal-title"
+                >
                   {editingHouse ? "Edit rumah" : "Tambah rumah"}
                 </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsHouseFormOpen(false)}
                 aria-label="Tutup"
               >
                 x
               </button>
             </div>
-            <form onSubmit={handleHouseSubmit}>
-              <label>
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleHouseSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Nomor rumah
                 <input
                   required
+                  className="h-12 rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 text-base font-bold tracking-[0.04em] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="number"
                   placeholder="Contoh: A-01"
                   autoFocus
                   defaultValue={editingHouse?.number ?? ""}
                 />
               </label>
-              <div className="modal-actions">
+              <div className="mt-1 flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => {
                     setIsHouseFormOpen(false);
                     setEditingHouse(null);
@@ -1156,7 +1313,10 @@ function Dashboard({
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving
                     ? "Menyimpan..."
                     : editingHouse
@@ -1170,20 +1330,30 @@ function Dashboard({
       )}
 
       {isContributionFormOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal"
+            className="max-h-[calc(100vh_-_40px)] w-[min(560px,100%)] overflow-y-auto rounded-[14px] bg-white shadow-[0_24px_70px_#17382e30]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="contribution-modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-0 flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
               <div>
-                <span className="eyebrow">KEUANGAN RT 01</span>
-                <h2 id="contribution-modal-title">Catat pembayaran</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KEUANGAN RT 01
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="contribution-modal-title"
+                >
+                  Catat pembayaran
+                </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsContributionFormOpen(false)}
                 aria-label="Tutup"
               >
@@ -1204,7 +1374,7 @@ function Dashboard({
                   ))}
                 </select>
               </label>
-              <div className="form-row">
+              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
                 <label>
                   Bulan
                   <select
@@ -1238,15 +1408,18 @@ function Dashboard({
                   placeholder="Contoh: 50000"
                 />
               </label>
-              <div className="modal-actions">
+              <div className="mt-6 flex justify-end gap-2.5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => setIsContributionFormOpen(false)}
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving ? "Menyimpan..." : "Simpan pembayaran"}
                 </button>
               </div>
@@ -1256,20 +1429,30 @@ function Dashboard({
       )}
 
       {isExpenseFormOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal"
+            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="expense-modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
-                <span className="eyebrow">KAS RT 01</span>
-                <h2 id="expense-modal-title">Catat pengeluaran</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KAS RT 01
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="expense-modal-title"
+                >
+                  Catat pengeluaran
+                </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsExpenseFormOpen(false)}
                 aria-label="Tutup"
               >
@@ -1285,7 +1468,7 @@ function Dashboard({
                   placeholder="Contoh: Perbaikan lampu jalan"
                 />
               </label>
-              <div className="form-row">
+              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
                 <label>
                   Kategori
                   <select name="category" defaultValue="Maintenance">
@@ -1307,15 +1490,18 @@ function Dashboard({
                   />
                 </label>
               </div>
-              <div className="modal-actions">
+              <div className="mt-6 flex justify-end gap-2.5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => setIsExpenseFormOpen(false)}
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving ? "Menyimpan..." : "Simpan pengeluaran"}
                 </button>
               </div>
@@ -1325,53 +1511,71 @@ function Dashboard({
       )}
 
       {isAnnouncementFormOpen && (
-        <div className="modal-backdrop" role="presentation">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
           <section
-            className="modal"
+            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="announcement-modal-title"
           >
-            <div className="modal-header">
+            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
-                <span className="eyebrow">KOMUNIKASI RT 01</span>
-                <h2 id="announcement-modal-title">Buat pengumuman</h2>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KOMUNIKASI RT 01
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="announcement-modal-title"
+                >
+                  Buat pengumuman
+                </h2>
               </div>
               <button
-                className="close-button"
+                className="border-0 bg-transparent text-lg text-[#78847f]"
                 onClick={() => setIsAnnouncementFormOpen(false)}
                 aria-label="Tutup"
               >
                 x
               </button>
             </div>
-            <form onSubmit={handleAnnouncementSubmit}>
-              <label>
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleAnnouncementSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Judul
                 <input
                   required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="title"
                   placeholder="Contoh: Kerja bakti hari Minggu"
                 />
               </label>
-              <label>
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Isi pengumuman
                 <textarea
                   required
+                  className="min-h-[150px] rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] leading-6 text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="content"
                   rows={5}
                   placeholder="Tulis informasi untuk warga..."
                 />
               </label>
-              <div className="modal-actions">
+              <div className="mt-1 flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
                   onClick={() => setIsAnnouncementFormOpen(false)}
                 >
                   Batal
                 </button>
-                <button className="primary-button" disabled={isSaving}>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
                   {isSaving ? "Menyimpan..." : "Terbitkan pengumuman"}
                 </button>
               </div>
@@ -1410,36 +1614,53 @@ function LoginPage({
   }
 
   return (
-    <main className="login-shell">
-      <section className="login-card">
-        <div className="brand">
-          <span className="brand-mark">R</span>
+    <main className="grid min-h-screen place-items-center bg-[#f7f9f6] p-5 font-sans">
+      <section className="w-[min(420px,100%)] rounded-[9px] border border-[#e1e7e2] bg-white p-9 shadow-[0_20px_50px_#17382e18]">
+        <div className="flex items-center gap-2.5 pb-[38px] text-[21px] font-extrabold tracking-[-0.7px] text-[#172522]">
+          <span className="grid size-[29px] place-items-center rounded-[9px_9px_9px_2px] bg-[#e87e42] font-mono text-[15px] text-white">
+            R
+          </span>
           <span>rukunin</span>
         </div>
-        <span className="eyebrow">AREA PENGELOLAAN RT</span>
-        <h1>Masuk ke akun</h1>
-        <p>Kelola data warga, iuran, kas, dan pengumuman RT.</p>
-        {error && <div className="notice">{error}</div>}
-        <form onSubmit={handleLogin}>
-          <label>
+        <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+          AREA PENGELOLAAN RT
+        </span>
+        <h1 className="mb-2 mt-3 text-[29px] tracking-[-1px] text-[#172522]">
+          Masuk ke akun
+        </h1>
+        <p className="mb-[26px] text-xs text-[#78847f]">
+          Kelola data warga, iuran, kas, dan pengumuman RT.
+        </p>
+        {error && (
+          <div className="mb-5 rounded-[6px] border border-[#f0d6a8] bg-[#fff6e7] px-[15px] py-3 text-xs text-[#825e2d]">
+            {error}
+          </div>
+        )}
+        <form className="grid gap-[15px]" onSubmit={handleLogin}>
+          <label className="grid gap-1.5 text-[11px] font-bold text-[#68766f]">
             Username
             <input
               required
+              className="rounded-[5px] border border-[#e1e7e2] bg-white px-3 py-2.5 text-[13px] text-[#172522] outline-0 focus:border-[#236b4a]"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               autoFocus
             />
           </label>
-          <label>
+          <label className="grid gap-1.5 text-[11px] font-bold text-[#68766f]">
             Password
             <input
               required
+              className="rounded-[5px] border border-[#e1e7e2] bg-white px-3 py-2.5 text-[13px] text-[#172522] outline-0 focus:border-[#236b4a]"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
           </label>
-          <button className="primary-button login-button" disabled={isLoading}>
+          <button
+            className="mt-2 inline-flex w-full items-center justify-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a] disabled:opacity-50"
+            disabled={isLoading}
+          >
             {isLoading ? "Memeriksa..." : "Masuk"}
           </button>
         </form>

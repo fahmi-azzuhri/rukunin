@@ -1,2 +1,64 @@
-html { background: #f7f9f6; }
-body { margin: 0; min-width: 320px; }
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+	--font-sans: "Manrope", sans-serif;
+	--font-mono: "DM Mono", monospace;
+}
+
+html {
+	background: #f7f9f6;
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+	font-family: "Manrope", sans-serif;
+	-webkit-font-smoothing: antialiased;
+}
+
+@layer base {
+	button,
+	input,
+	select,
+	textarea {
+		font: inherit;
+	}
+
+	button {
+		cursor: pointer;
+	}
+
+	table {
+		font-size: 11px;
+	}
+
+	th {
+		padding: 14px 23px;
+		color: #9ca7a0;
+		font: 500 10px/1 "DM Mono", monospace;
+		letter-spacing: 0.7px;
+		text-align: left;
+		white-space: nowrap;
+	}
+
+	td {
+		padding: 14px 23px;
+		border-top: 1px solid #edf0ed;
+		color: #728078;
+		white-space: nowrap;
+	}
+
+	tbody tr {
+		transition: background-color 150ms ease;
+	}
+
+	tbody tr:hover {
+		background: #fbfcfa;
+	}
+
+	input::placeholder,
+	textarea::placeholder {
+		color: #a9b2ad;
+	}
+}
