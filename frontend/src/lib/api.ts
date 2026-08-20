@@ -35,10 +35,30 @@ export type Expense = {
   created_by: string;
 };
 
+export type Announcement = {
+  id: number;
+  rt_id: number;
+  title: string;
+  content: string;
+  created_by: string;
+  created_at: number;
+};
+
+export type Role = "ketua" | "bendahara" | "sekretaris" | "wakil" | "warga";
+export type AuthUser = {
+  id: number;
+  rt_id: number;
+  username: string;
+  name: string;
+  role: Role;
+};
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const headers = new Headers(options?.headers);
+  const token = localStorage.getItem("rukunin_token");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
   if (options?.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
@@ -53,13 +73,47 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(body?.error ?? "Gagal terhubung ke server");
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return response.json() as Promise<T>;
+}
+
+export function login(username: string, password: string) {
+  return request<{ token: string; user: AuthUser }>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export function getCurrentUser() {
+  return request<AuthUser>("/api/auth/me");
+}
+export function logout() {
+  localStorage.removeItem("rukunin_token");
+  localStorage.removeItem("rukunin_user");
 }
 
 export function getResidents(rtId: number) {
   return request<Resident[]>(`/api/rts/${rtId}/residents`);
 }
+export function getUsers() {
+  return request<AuthUser[]>("/api/users");
+}
 
+export function createUser(user: {
+  username: string;
+  password: string;
+  name: string;
+  role: Role;
+  resident_id?: number;
+}) {
+  return request<AuthUser>("/api/users", {
+    method: "POST",
+    body: JSON.stringify(user),
+  });
+}
 export function getHouses(rtId: number) {
   return request<House[]>(`/api/rts/${rtId}/houses`);
 }
@@ -68,6 +122,19 @@ export function createHouse(rtId: number, number: string) {
   return request<House>(`/api/rts/${rtId}/houses`, {
     method: "POST",
     body: JSON.stringify({ number }),
+  });
+}
+
+export function updateHouse(rtId: number, houseId: number, number: string) {
+  return request<House>(`/api/rts/${rtId}/houses/${houseId}`, {
+    method: "PUT",
+    body: JSON.stringify({ number }),
+  });
+}
+
+export function deleteHouse(rtId: number, houseId: number) {
+  return request<void>(`/api/rts/${rtId}/houses/${houseId}`, {
+    method: "DELETE",
   });
 }
 
@@ -81,6 +148,26 @@ export function createResident(
   return request<Resident>(`/api/rts/${rtId}/residents`, {
     method: "POST",
     body: JSON.stringify(resident),
+  });
+}
+
+export function updateResident(
+  rtId: number,
+  residentId: number,
+  resident: Pick<
+    Resident,
+    "house_id" | "name" | "nik" | "no_kk" | "phone" | "status"
+  >,
+) {
+  return request<Resident>(`/api/rts/${rtId}/residents/${residentId}`, {
+    method: "PUT",
+    body: JSON.stringify(resident),
+  });
+}
+
+export function deleteResident(rtId: number, residentId: number) {
+  return request<void>(`/api/rts/${rtId}/residents/${residentId}`, {
+    method: "DELETE",
   });
 }
 
@@ -112,5 +199,19 @@ export function createExpense(
   return request<Expense>(`/api/rts/${rtId}/expenses`, {
     method: "POST",
     body: JSON.stringify(expense),
+  });
+}
+
+export function getAnnouncements(rtId: number) {
+  return request<Announcement[]>(`/api/rts/${rtId}/announcements`);
+}
+
+export function createAnnouncement(
+  rtId: number,
+  announcement: Pick<Announcement, "title" | "content" | "created_by">,
+) {
+  return request<Announcement>(`/api/rts/${rtId}/announcements`, {
+    method: "POST",
+    body: JSON.stringify(announcement),
   });
 }
