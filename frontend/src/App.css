@@ -23,4 +23,5 @@ button { cursor: pointer; }
 .section-heading h2 { margin: 8px 0 0; font-size: 18px; letter-spacing: -.5px; }
 .contribution-summary { display: flex; gap: 70px; padding: 19px 23px; background: #fbfcfa; border-bottom: 1px solid var(--line); }
 .contribution-summary strong { display: block; margin-top: 8px; color: var(--ink); font-size: 20px; }
+.negative-balance { color: #b94b3e !important; }
 @media (max-width: 800px) { .section-heading { align-items: flex-start; gap: 15px; flex-direction: column; }.contribution-summary { gap: 35px; } }

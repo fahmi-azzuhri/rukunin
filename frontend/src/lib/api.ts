@@ -25,6 +25,16 @@ export type Contribution = {
   pay_date: number;
 };
 
+export type Expense = {
+  id: number;
+  rt_id: number;
+  description: string;
+  amount: number;
+  category: string;
+  date: number;
+  created_by: string;
+};
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -85,5 +95,22 @@ export function createContribution(
   return request<Contribution>(`/api/rts/${rtId}/contributions`, {
     method: "POST",
     body: JSON.stringify({ ...contribution, status: "Paid" }),
+  });
+}
+
+export function getExpenses(rtId: number) {
+  return request<Expense[]>(`/api/rts/${rtId}/expenses`);
+}
+
+export function createExpense(
+  rtId: number,
+  expense: Pick<
+    Expense,
+    "description" | "amount" | "category" | "date" | "created_by"
+  >,
+) {
+  return request<Expense>(`/api/rts/${rtId}/expenses`, {
+    method: "POST",
+    body: JSON.stringify(expense),
   });
 }

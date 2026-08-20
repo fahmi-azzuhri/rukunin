@@ -1,49 +1,73 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import {
+  BrowserRouter,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import {
   createHouse,
   createContribution,
+  createExpense,
   createResident,
   getContributions,
+  getExpenses,
   getHouses,
   getResidents,
 } from "./lib/api";
-import type { Contribution, House, Resident } from "./lib/api";
+import type { Contribution, Expense, House, Resident } from "./lib/api";
 import "./App.css";
 
 const rtId = 1;
 
-function App() {
+function Dashboard() {
   const [residents, setResidents] = useState<Resident[]>([]);
   const [houses, setHouses] = useState<House[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isHouseFormOpen, setIsHouseFormOpen] = useState(false);
   const [isContributionFormOpen, setIsContributionFormOpen] = useState(false);
+  const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const location = useLocation();
+  const activePage = location.pathname.replace("/", "") || "warga";
 
   async function loadData() {
     setIsLoading(true);
     setError("");
-    try {
-      const [residentData, houseData, contributionData] = await Promise.all([
-        getResidents(rtId),
-        getHouses(rtId),
-        getContributions(rtId),
-      ]);
-      setResidents(residentData);
-      setHouses(houseData);
-      setContributions(contributionData);
-    } catch (loadError) {
-      setError(
-        loadError instanceof Error ? loadError.message : "Data belum tersedia",
-      );
-    } finally {
-      setIsLoading(false);
+    const results = await Promise.allSettled([
+      getResidents(rtId),
+      getHouses(rtId),
+      getContributions(rtId),
+      getExpenses(rtId),
+    ]);
+
+    const [residentResult, houseResult, contributionResult, expenseResult] =
+      results;
+    const failedModules: string[] = [];
+
+    if (residentResult.status === "fulfilled")
+      setResidents(residentResult.value);
+    else failedModules.push("warga");
+    if (houseResult.status === "fulfilled") setHouses(houseResult.value);
+    else failedModules.push("rumah");
+    if (contributionResult.status === "fulfilled")
+      setContributions(contributionResult.value);
+    else failedModules.push("iuran");
+    if (expenseResult.status === "fulfilled") setExpenses(expenseResult.value);
+    else failedModules.push("kas");
+
+    if (failedModules.length > 0) {
+      setError(`Data ${failedModules.join(", ")} belum dapat dimuat.`);
     }
+    setIsLoading(false);
   }
 
   useEffect(() => {
@@ -52,7 +76,8 @@ function App() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setIsSaving(true);
     setError("");
     try {
@@ -64,7 +89,7 @@ function App() {
         status: String(form.get("status") ?? "Anggota"),
         house_id: Number(form.get("house_id")),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setIsFormOpen(false);
       await loadData();
     } catch (saveError) {
@@ -80,14 +105,26 @@ function App() {
 
   async function handleHouseSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const houseNumber = String(form.get("number") ?? "")
+      .trim()
+      .toUpperCase();
+    const isDuplicate = houses.some(
+      (house) => house.number.trim().toUpperCase() === houseNumber,
+    );
+    if (isDuplicate) {
+      setError(`Nomor rumah ${houseNumber} sudah terdaftar di RT 01.`);
+      return;
+    }
     setIsSaving(true);
     setError("");
     try {
-      await createHouse(rtId, String(form.get("number") ?? ""));
-      event.currentTarget.reset();
+      const newHouse = await createHouse(rtId, houseNumber);
+      setHouses((currentHouses) => [...currentHouses, newHouse]);
+      formElement.reset();
       setIsHouseFormOpen(false);
-      await loadData();
+      void loadData();
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -101,7 +138,8 @@ function App() {
 
   async function handleContributionSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setIsSaving(true);
     setError("");
     try {
@@ -111,12 +149,40 @@ function App() {
         year: Number(form.get("year")),
         amount: Number(form.get("amount")),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setIsContributionFormOpen(false);
       await loadData();
     } catch (saveError) {
       setError(
         saveError instanceof Error ? saveError.message : "Iuran gagal disimpan",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleExpenseSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    setIsSaving(true);
+    setError("");
+    try {
+      await createExpense(rtId, {
+        description: String(form.get("description") ?? ""),
+        category: String(form.get("category") ?? "Lainnya"),
+        amount: Number(form.get("amount")),
+        date: Date.now(),
+        created_by: "Budi Santoso",
+      });
+      formElement.reset();
+      setIsExpenseFormOpen(false);
+      await loadData();
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Pengeluaran gagal disimpan",
       );
     } finally {
       setIsSaving(false);
@@ -130,6 +196,11 @@ function App() {
     (total, contribution) => total + contribution.amount,
     0,
   );
+  const totalExpenses = expenses.reduce(
+    (total, expense) => total + expense.amount,
+    0,
+  );
+  const currentBalance = totalContributions - totalExpenses;
 
   const filteredResidents = residents.filter((resident) =>
     `${resident.name} ${resident.nik} ${resident.phone}`
@@ -151,18 +222,27 @@ function App() {
           <small>RW 01</small>
         </div>
         <nav className="nav-list" aria-label="Navigasi utama">
-          <a className="nav-item active" href="#warga">
+          <NavLink
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            to="/warga"
+          >
             <span>01</span> Warga
-          </a>
-          <a className="nav-item" href="#iuran">
+          </NavLink>
+          <NavLink
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            to="/iuran"
+          >
             <span>02</span> Iuran
-          </a>
-          <a className="nav-item" href="#kas">
+          </NavLink>
+          <NavLink
+            className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            to="/kas"
+          >
             <span>03</span> Kas RT
-          </a>
-          <a className="nav-item" href="#pengumuman">
+          </NavLink>
+          <span className="nav-item disabled">
             <span>04</span> Pengumuman
-          </a>
+          </span>
         </nav>
         <div className="sidebar-footer">
           <div className="avatar">BS</div>
@@ -178,7 +258,13 @@ function App() {
         <header className="topbar">
           <div>
             <span className="eyebrow">SELASA, 19 AGUSTUS 2026</span>
-            <h1>Data warga</h1>
+            <h1>
+              {activePage === "warga"
+                ? "Data warga"
+                : activePage === "iuran"
+                  ? "Iuran warga"
+                  : "Kas RT"}
+            </h1>
           </div>
           <div className="top-actions">
             <button className="icon-button" aria-label="Notifikasi">
@@ -190,200 +276,281 @@ function App() {
             </div>
           </div>
         </header>
-        <div className="intro-row">
-          <p>Kelola data warga dan rumah di lingkungan RT 01.</p>
-          <div className="intro-actions">
-            <button
-              className="secondary-button"
-              onClick={() => setIsHouseFormOpen(true)}
-            >
-              <span>+</span> Tambah rumah
-            </button>
-            <button
-              className="primary-button"
-              onClick={() => setIsFormOpen(true)}
-            >
-              <span>+</span> Tambah warga
-            </button>
-          </div>
-        </div>
-        {error && (
-          <div className="notice">
-            <strong>Belum terhubung ke API.</strong> {error}{" "}
-            <button onClick={() => void loadData()}>Coba lagi</button>
+        {activePage === "warga" && (
+          <div className="page-content">
+            <div className="intro-row">
+              <p>Kelola data warga dan rumah di lingkungan RT 01.</p>
+              <div className="intro-actions">
+                <button
+                  className="secondary-button"
+                  onClick={() => setIsHouseFormOpen(true)}
+                >
+                  <span>+</span> Tambah rumah
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={() => setIsFormOpen(true)}
+                >
+                  <span>+</span> Tambah warga
+                </button>
+              </div>
+            </div>
+            {error && (
+              <div className="notice">
+                <strong>Gagal memproses permintaan.</strong> {error}{" "}
+                <button onClick={() => void loadData()}>Coba lagi</button>
+              </div>
+            )}
+            <section className="stats-grid" aria-label="Ringkasan data">
+              <article className="stat-card accent">
+                <span className="stat-label">TOTAL WARGA</span>
+                <strong>{isLoading ? "--" : residents.length}</strong>
+                <span className="stat-note">terdata di RT 01</span>
+              </article>
+              <article className="stat-card">
+                <span className="stat-label">TOTAL RUMAH</span>
+                <strong>{isLoading ? "--" : houses.length}</strong>
+                <span className="stat-note">rumah terdaftar</span>
+              </article>
+              <article className="stat-card">
+                <span className="stat-label">KEPALA KELUARGA</span>
+                <strong>
+                  {isLoading
+                    ? "--"
+                    : residents.filter(
+                        (resident) => resident.status === "Kepala Keluarga",
+                      ).length}
+                </strong>
+                <span className="stat-note">dari total warga</span>
+              </article>
+            </section>
+            <section className="table-panel">
+              <div className="panel-heading">
+                <div>
+                  <span className="eyebrow">DATABASE RT 01</span>
+                  <h2>Daftar warga</h2>
+                </div>
+                <div className="table-tools">
+                  <label className="search-box">
+                    <span>/</span>
+                    <input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Cari nama atau NIK..."
+                    />
+                  </label>
+                  <button className="filter-button">
+                    Filter <span>v</span>
+                  </button>
+                </div>
+              </div>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>WARGA</th>
+                      <th>NIK</th>
+                      <th>NO. RUMAH</th>
+                      <th>STATUS</th>
+                      <th>TELEPON</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={6} className="empty-state">
+                          Memuat data warga...
+                        </td>
+                      </tr>
+                    ) : filteredResidents.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="empty-state">
+                          Belum ada data warga.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredResidents.map((resident) => (
+                        <tr key={resident.id}>
+                          <td>
+                            <div className="person">
+                              <span className="person-avatar">
+                                {resident.name.slice(0, 1).toUpperCase()}
+                              </span>
+                              <strong>{resident.name}</strong>
+                            </div>
+                          </td>
+                          <td>{resident.nik || "-"}</td>
+                          <td>
+                            <span className="house-tag">
+                              #{resident.house_id}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="role-tag">
+                              {resident.status || "Anggota"}
+                            </span>
+                          </td>
+                          <td>{resident.phone || "-"}</td>
+                          <td>
+                            <button
+                              className="row-menu"
+                              aria-label={`Opsi ${resident.name}`}
+                            >
+                              ...
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
         )}
-        <section className="stats-grid" aria-label="Ringkasan data">
-          <article className="stat-card accent">
-            <span className="stat-label">TOTAL WARGA</span>
-            <strong>{isLoading ? "--" : residents.length}</strong>
-            <span className="stat-note">terdata di RT 01</span>
-          </article>
-          <article className="stat-card">
-            <span className="stat-label">TOTAL RUMAH</span>
-            <strong>{isLoading ? "--" : houses.length}</strong>
-            <span className="stat-note">rumah terdaftar</span>
-          </article>
-          <article className="stat-card">
-            <span className="stat-label">KEPALA KELUARGA</span>
-            <strong>
-              {isLoading
-                ? "--"
-                : residents.filter(
-                    (resident) => resident.status === "Kepala Keluarga",
-                  ).length}
-            </strong>
-            <span className="stat-note">dari total warga</span>
-          </article>
-        </section>
-        <section className="table-panel">
-          <div className="panel-heading">
-            <div>
-              <span className="eyebrow">DATABASE RT 01</span>
-              <h2>Daftar warga</h2>
-            </div>
-            <div className="table-tools">
-              <label className="search-box">
-                <span>/</span>
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Cari nama atau NIK..."
-                />
-              </label>
-              <button className="filter-button">
-                Filter <span>v</span>
+
+        {activePage === "iuran" && (
+          <section className="contribution-section" id="iuran">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">KEUANGAN RT 01</span>
+                <h2>Iuran warga</h2>
+              </div>
+              <button
+                className="primary-button"
+                onClick={() => setIsContributionFormOpen(true)}
+              >
+                <span>+</span> Catat pembayaran
               </button>
             </div>
-          </div>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>WARGA</th>
-                  <th>NIK</th>
-                  <th>NO. RUMAH</th>
-                  <th>STATUS</th>
-                  <th>TELEPON</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
+            <div className="contribution-summary">
+              <div>
+                <span className="stat-label">TOTAL TERCATAT</span>
+                <strong>Rp {totalContributions.toLocaleString("id-ID")}</strong>
+              </div>
+              <div>
+                <span className="stat-label">PEMBAYARAN</span>
+                <strong>{contributions.length}</strong>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan={6} className="empty-state">
-                      Memuat data warga...
-                    </td>
+                    <th>WARGA</th>
+                    <th>PERIODE</th>
+                    <th>NOMINAL</th>
+                    <th>STATUS</th>
                   </tr>
-                ) : filteredResidents.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="empty-state">
-                      Belum ada data warga.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredResidents.map((resident) => (
-                    <tr key={resident.id}>
-                      <td>
-                        <div className="person">
-                          <span className="person-avatar">
-                            {resident.name.slice(0, 1).toUpperCase()}
+                </thead>
+                <tbody>
+                  {contributions.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="empty-state">
+                        Belum ada pembayaran iuran.
+                      </td>
+                    </tr>
+                  ) : (
+                    contributions.map((contribution) => (
+                      <tr key={contribution.id}>
+                        <td>
+                          <strong>
+                            {residentName.get(contribution.resident_id) ??
+                              `Warga #${contribution.resident_id}`}
+                          </strong>
+                        </td>
+                        <td>
+                          {String(contribution.month).padStart(2, "0")}/
+                          {contribution.year}
+                        </td>
+                        <td>
+                          Rp {contribution.amount.toLocaleString("id-ID")}
+                        </td>
+                        <td>
+                          <span className="role-tag">
+                            {contribution.status || "Paid"}
                           </span>
-                          <strong>{resident.name}</strong>
-                        </div>
-                      </td>
-                      <td>{resident.nik || "-"}</td>
-                      <td>
-                        <span className="house-tag">#{resident.house_id}</span>
-                      </td>
-                      <td>
-                        <span className="role-tag">
-                          {resident.status || "Anggota"}
-                        </span>
-                      </td>
-                      <td>{resident.phone || "-"}</td>
-                      <td>
-                        <button
-                          className="row-menu"
-                          aria-label={`Opsi ${resident.name}`}
-                        >
-                          ...
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
-        <section className="contribution-section" id="iuran">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">KEUANGAN RT 01</span>
-              <h2>Iuran warga</h2>
+        {activePage === "kas" && (
+          <section className="contribution-section" id="kas">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">KEUANGAN RT 01</span>
+                <h2>Kas RT</h2>
+              </div>
+              <button
+                className="primary-button"
+                onClick={() => setIsExpenseFormOpen(true)}
+              >
+                <span>+</span> Catat pengeluaran
+              </button>
             </div>
-            <button
-              className="primary-button"
-              onClick={() => setIsContributionFormOpen(true)}
-            >
-              <span>+</span> Catat pembayaran
-            </button>
-          </div>
-          <div className="contribution-summary">
-            <div>
-              <span className="stat-label">TOTAL TERCATAT</span>
-              <strong>Rp {totalContributions.toLocaleString("id-ID")}</strong>
+            <div className="contribution-summary">
+              <div>
+                <span className="stat-label">SALDO BERJALAN</span>
+                <strong
+                  className={currentBalance < 0 ? "negative-balance" : ""}
+                >
+                  Rp {currentBalance.toLocaleString("id-ID")}
+                </strong>
+              </div>
+              <div>
+                <span className="stat-label">TOTAL PENGELUARAN</span>
+                <strong>Rp {totalExpenses.toLocaleString("id-ID")}</strong>
+              </div>
             </div>
-            <div>
-              <span className="stat-label">PEMBAYARAN</span>
-              <strong>{contributions.length}</strong>
-            </div>
-          </div>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>WARGA</th>
-                  <th>PERIODE</th>
-                  <th>NOMINAL</th>
-                  <th>STATUS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {contributions.length === 0 ? (
+            <div className="table-wrap">
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan={4} className="empty-state">
-                      Belum ada pembayaran iuran.
-                    </td>
+                    <th>KETERANGAN</th>
+                    <th>KATEGORI</th>
+                    <th>NOMINAL</th>
+                    <th>TANGGAL</th>
                   </tr>
-                ) : (
-                  contributions.map((contribution) => (
-                    <tr key={contribution.id}>
-                      <td>
-                        <strong>
-                          {residentName.get(contribution.resident_id) ??
-                            `Warga #${contribution.resident_id}`}
-                        </strong>
-                      </td>
-                      <td>
-                        {String(contribution.month).padStart(2, "0")}/
-                        {contribution.year}
-                      </td>
-                      <td>Rp {contribution.amount.toLocaleString("id-ID")}</td>
-                      <td>
-                        <span className="role-tag">
-                          {contribution.status || "Paid"}
-                        </span>
+                </thead>
+                <tbody>
+                  {expenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="empty-state">
+                        Belum ada pengeluaran.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                  ) : (
+                    expenses.map((expense) => (
+                      <tr key={expense.id}>
+                        <td>
+                          <strong>{expense.description}</strong>
+                        </td>
+                        <td>
+                          <span className="house-tag">
+                            {expense.category || "Lainnya"}
+                          </span>
+                        </td>
+                        <td>Rp {expense.amount.toLocaleString("id-ID")}</td>
+                        <td>
+                          {expense.date
+                            ? new Date(expense.date).toLocaleDateString("id-ID")
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </section>
 
       {isFormOpen && (
@@ -613,7 +780,90 @@ function App() {
           </section>
         </div>
       )}
+
+      {isExpenseFormOpen && (
+        <div className="modal-backdrop" role="presentation">
+          <section
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="expense-modal-title"
+          >
+            <div className="modal-header">
+              <div>
+                <span className="eyebrow">KAS RT 01</span>
+                <h2 id="expense-modal-title">Catat pengeluaran</h2>
+              </div>
+              <button
+                className="close-button"
+                onClick={() => setIsExpenseFormOpen(false)}
+                aria-label="Tutup"
+              >
+                x
+              </button>
+            </div>
+            <form onSubmit={handleExpenseSubmit}>
+              <label>
+                Keterangan
+                <input
+                  required
+                  name="description"
+                  placeholder="Contoh: Perbaikan lampu jalan"
+                />
+              </label>
+              <div className="form-row">
+                <label>
+                  Kategori
+                  <select name="category" defaultValue="Maintenance">
+                    <option>Maintenance</option>
+                    <option>Security</option>
+                    <option>Cleaning</option>
+                    <option>Kegiatan</option>
+                    <option>Lainnya</option>
+                  </select>
+                </label>
+                <label>
+                  Nominal
+                  <input
+                    required
+                    name="amount"
+                    type="number"
+                    min="1"
+                    placeholder="Contoh: 150000"
+                  />
+                </label>
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => setIsExpenseFormOpen(false)}
+                >
+                  Batal
+                </button>
+                <button className="primary-button" disabled={isSaving}>
+                  {isSaving ? "Menyimpan..." : "Simpan pengeluaran"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </main>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/warga" replace />} />
+        <Route path="/warga" element={<Dashboard />} />
+        <Route path="/iuran" element={<Dashboard />} />
+        <Route path="/kas" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/warga" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
