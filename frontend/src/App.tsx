@@ -386,6 +386,14 @@ function Dashboard({
   }
 
   async function handleUserRoleChange(userId: number, nextRole: Role) {
+    if (
+      nextRole === "ketua" &&
+      !window.confirm(
+        "Jadikan akun ini Ketua RT? Ketua RT saat ini akan diturunkan menjadi Warga dan sesi Anda akan berakhir.",
+      )
+    ) {
+      return;
+    }
     setIsSaving(true);
     setError("");
     try {
@@ -395,6 +403,9 @@ function Dashboard({
           account.id === updatedUser.id ? updatedUser : account,
         ),
       );
+      if (nextRole === "ketua") {
+        onLogout();
+      }
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -1126,9 +1137,7 @@ function Dashboard({
                                 }
                                 disabled={isSaving || account.id === user.id}
                               >
-                                {account.id === user.id && (
-                                  <option value="ketua">Ketua RT</option>
-                                )}
+                                <option value="ketua">Ketua RT</option>
                                 <option value="bendahara">Bendahara</option>
                                 <option value="sekretaris">Sekretaris</option>
                                 <option value="wakil">Wakil RT</option>
