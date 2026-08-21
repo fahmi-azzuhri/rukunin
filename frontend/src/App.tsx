@@ -69,6 +69,8 @@ function Dashboard({
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [isAnnouncementFormOpen, setIsAnnouncementFormOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [residentFilter, setResidentFilter] = useState("all");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
@@ -332,15 +334,23 @@ function Dashboard({
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const residentId = Number(form.get("resident_id"));
+    const selectedResident = residents.find(
+      (resident) => resident.id === residentId,
+    );
+    if (!selectedResident) {
+      setError("Pilih warga yang akan diberi akun.");
+      return;
+    }
     setIsSaving(true);
     setError("");
     try {
       const user = await createUser({
         username: String(form.get("username") ?? ""),
         password: String(form.get("password") ?? ""),
-        name: String(form.get("name") ?? ""),
+        name: selectedResident.name,
         role: String(form.get("role") ?? "warga") as Role,
-        resident_id: Number(form.get("resident_id")) || undefined,
+        resident_id: residentId,
       });
       setUsers((current) => [...current, user]);
       formElement.reset();
@@ -368,11 +378,26 @@ function Dashboard({
   );
   const currentBalance = totalContributions - totalExpenses;
 
-  const filteredResidents = residents.filter((resident) =>
-    `${resident.name} ${resident.nik} ${resident.phone}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+  const filteredResidents = residents.filter(
+    (resident) =>
+      `${resident.name} ${resident.nik} ${resident.phone}`
+        .toLowerCase()
+        .includes(search.toLowerCase()) &&
+      (residentFilter === "all" ||
+        (residentFilter === "empty-house"
+          ? resident.house_id === 0
+          : resident.status === residentFilter ||
+            String(resident.house_id) === residentFilter)),
   );
+
+  const activeFilterLabel =
+    residentFilter === "all"
+      ? "Semua"
+      : residentFilter === "empty-house"
+        ? "Tanpa rumah"
+        : (roleLabels[residentFilter as Role] ??
+          houseNumber.get(Number(residentFilter)) ??
+          "Filter aktif");
 
   return (
     <main className="flex min-h-screen bg-[#f7f9f6] font-sans text-[#172522]">
@@ -637,9 +662,74 @@ function Dashboard({
                       placeholder="Cari nama atau NIK..."
                     />
                   </label>
-                  <button className="rounded-[5px] border border-[#d3ddd6] bg-transparent px-3 py-2 text-[11px] font-bold text-[#57655f] max-[800px]:px-2.5">
-                    Filter <span>v</span>
-                  </button>
+                  <div className="relative">
+                    <button
+                      className={`rounded-[5px] border px-3 py-2 text-[11px] font-bold max-[800px]:px-2.5 ${residentFilter === "all" ? "border-[#d3ddd6] bg-transparent text-[#57655f]" : "border-[#b9d8c3] bg-[#edf7ef] text-[#236b4a]"}`}
+                      onClick={() => setIsFilterOpen((open) => !open)}
+                      type="button"
+                    >
+                      {activeFilterLabel} <span className="ml-2">v</span>
+                    </button>
+                    {isFilterOpen && (
+                      <div className="absolute right-0 top-[calc(100%+8px)] z-10 grid min-w-[190px] gap-1 rounded-[8px] border border-[#e1e7e2] bg-white p-1.5 shadow-[0_12px_30px_#17382e18]">
+                        <button
+                          className="rounded-[5px] px-3 py-2 text-left text-[11px] font-bold text-[#57655f] hover:bg-[#f2f6f1]"
+                          onClick={() => {
+                            setResidentFilter("all");
+                            setIsFilterOpen(false);
+                          }}
+                          type="button"
+                        >
+                          Semua warga
+                        </button>
+                        {(["Kepala Keluarga", "Anggota", "Tamu"] as const).map(
+                          (status) => (
+                            <button
+                              className="rounded-[5px] px-3 py-2 text-left text-[11px] font-bold text-[#57655f] hover:bg-[#f2f6f1]"
+                              key={status}
+                              onClick={() => {
+                                setResidentFilter(status);
+                                setIsFilterOpen(false);
+                              }}
+                              type="button"
+                            >
+                              {status}
+                            </button>
+                          ),
+                        )}
+                        {houses.length > 0 && (
+                          <>
+                            <div className="my-1 border-t border-[#edf0ed]" />
+                            {houses.map((house) => (
+                              <button
+                                className="rounded-[5px] px-3 py-2 text-left text-[11px] font-bold text-[#57655f] hover:bg-[#f2f6f1]"
+                                key={house.id}
+                                onClick={() => {
+                                  setResidentFilter(String(house.id));
+                                  setIsFilterOpen(false);
+                                }}
+                                type="button"
+                              >
+                                Rumah {house.number}
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {residentFilter !== "all" && (
+                          <button
+                            className="mt-1 border-t border-[#edf0ed] px-3 py-2 text-left text-[11px] font-bold text-[#b94b3e]"
+                            onClick={() => {
+                              setResidentFilter("all");
+                              setIsFilterOpen(false);
+                            }}
+                            type="button"
+                          >
+                            Hapus filter
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -1166,12 +1256,12 @@ function Dashboard({
           role="presentation"
         >
           <section
-            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24]"
+            className="max-h-[calc(100vh_-_40px)] w-[min(560px,100%)] overflow-y-auto rounded-[14px] bg-white shadow-[0_24px_70px_#17382e30]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="user-modal-title"
           >
-            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
+            <div className="mb-0 flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
                   AKUN PENGGUNA
@@ -1180,8 +1270,12 @@ function Dashboard({
                   className="mt-2 text-lg tracking-[-0.5px]"
                   id="user-modal-title"
                 >
-                  Buat akun & role
+                  Buat akun warga
                 </h2>
+                <p className="mt-2 max-w-[360px] text-xs leading-5 text-[#78847f]">
+                  Pilih warga yang sudah terdaftar, lalu tentukan akses
+                  loginnya.
+                </p>
               </div>
               <button
                 className="border-0 bg-transparent text-lg text-[#78847f]"
@@ -1191,52 +1285,61 @@ function Dashboard({
                 x
               </button>
             </div>
-            <form onSubmit={handleUserSubmit}>
-              <label>
-                Nama pengguna
-                <input required name="name" placeholder="Nama pemegang akun" />
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleUserSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                Warga
+                <select
+                  required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                  name="resident_id"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Pilih warga
+                  </option>
+                  {residents.map((resident) => (
+                    <option key={resident.id} value={resident.id}>
+                      {resident.name}
+                    </option>
+                  ))}
+                </select>
+                <span className="font-normal text-[#9aa69f]">
+                  Nama akun akan mengikuti data warga ini.
+                </span>
               </label>
-              <label>
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Username
                 <input
                   required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="username"
                   placeholder="contoh: bendahara.rt01"
                 />
               </label>
-              <label>
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Password
                 <input
                   required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   minLength={6}
                   name="password"
                   type="password"
                   placeholder="Minimal 6 karakter"
                 />
               </label>
-              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
-                <label>
-                  Role
-                  <select required name="role" defaultValue="warga">
-                    <option value="bendahara">Bendahara</option>
-                    <option value="sekretaris">Sekretaris</option>
-                    <option value="wakil">Wakil RT</option>
-                    <option value="warga">Warga</option>
-                  </select>
-                </label>
-                <label>
-                  Kaitkan warga
-                  <select name="resident_id" defaultValue="">
-                    <option value="">Tidak dikaitkan</option>
-                    {residents.map((resident) => (
-                      <option key={resident.id} value={resident.id}>
-                        {resident.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="mt-6 flex justify-end gap-2.5">
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                Hak akses
+                <select required name="role" defaultValue="warga">
+                  <option value="bendahara">Bendahara</option>
+                  <option value="sekretaris">Sekretaris</option>
+                  <option value="wakil">Wakil RT</option>
+                  <option value="warga">Warga</option>
+                </select>
+              </label>
+              <div className="mt-1 flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
                 <button
                   type="button"
                   className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
