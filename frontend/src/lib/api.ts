@@ -53,6 +53,14 @@ export type AuthUser = {
   role: Role;
 };
 
+export type Area = {
+  id: number;
+  rw_id: number;
+  name: string;
+  chair: string;
+  rw?: { id: number; name: string };
+};
+
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -102,6 +110,17 @@ export function getUsers() {
   return request<AuthUser[]>("/api/users");
 }
 
+export function getArea(rtId: number) {
+  return request<Area>(`/api/rts/${rtId}/`);
+}
+
+export function updateArea(rtId: number, area: Pick<Area, "name" | "chair">) {
+  return request<Area>(`/api/rts/${rtId}/`, {
+    method: "PUT",
+    body: JSON.stringify(area),
+  });
+}
+
 export function createUser(user: {
   username: string;
   password: string;
@@ -112,6 +131,13 @@ export function createUser(user: {
   return request<AuthUser>("/api/users", {
     method: "POST",
     body: JSON.stringify(user),
+  });
+}
+
+export function updateUserRole(userId: number, role: Role) {
+  return request<AuthUser>(`/api/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify({ role }),
   });
 }
 export function getHouses(rtId: number) {
@@ -143,7 +169,11 @@ export function createResident(
   resident: Pick<
     Resident,
     "house_id" | "name" | "nik" | "no_kk" | "phone" | "status"
-  >,
+  > & {
+    username?: string;
+    password?: string;
+    role?: Role;
+  },
 ) {
   return request<Resident>(`/api/rts/${rtId}/residents`, {
     method: "POST",

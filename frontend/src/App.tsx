@@ -24,7 +24,10 @@ import {
   updateHouse,
   updateResident,
   createUser,
+  updateUserRole,
   getUsers,
+  getArea,
+  updateArea,
   login,
   logout,
 } from "./lib/api";
@@ -35,8 +38,8 @@ import type {
   House,
   Resident,
   AuthUser,
+  Area,
 } from "./lib/api";
-const rtId = 1;
 type Role = AuthUser["role"];
 
 const roleLabels: Record<Role, string> = {
@@ -74,6 +77,9 @@ function Dashboard({
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [isUserFormOpen, setIsUserFormOpen] = useState(false);
+  const [isAreaFormOpen, setIsAreaFormOpen] = useState(false);
+  const [area, setArea] = useState<Area | null>(null);
+  const rtId = user.rt_id;
   const role = user.role;
   const location = useLocation();
   const activePage = location.pathname.replace("/", "") || "warga";
@@ -86,6 +92,7 @@ function Dashboard({
     setIsLoading(true);
     setError("");
     const results = await Promise.allSettled([
+      getArea(rtId),
       getResidents(rtId),
       getHouses(rtId),
       getContributions(rtId),
@@ -94,6 +101,7 @@ function Dashboard({
     ]);
 
     const [
+      areaResult,
       residentResult,
       houseResult,
       contributionResult,
@@ -101,6 +109,9 @@ function Dashboard({
       announcementResult,
     ] = results;
     const failedModules: string[] = [];
+
+    if (areaResult.status === "fulfilled") setArea(areaResult.value);
+    else failedModules.push("area RT");
 
     if (residentResult.status === "fulfilled")
       setResidents(residentResult.value);
@@ -151,7 +162,15 @@ function Dashboard({
       if (editingResident) {
         await updateResident(rtId, editingResident.id, residentData);
       } else {
-        await createResident(rtId, residentData);
+        const username = String(form.get("username") ?? "").trim();
+        const password = String(form.get("password") ?? "");
+        const accountRole = String(form.get("account_role") ?? "");
+        await createResident(rtId, {
+          ...residentData,
+          ...(username || password || accountRole
+            ? { username, password, role: accountRole as Role }
+            : {}),
+        });
       }
       formElement.reset();
       setIsFormOpen(false);
@@ -197,7 +216,7 @@ function Dashboard({
         house.number.trim().toUpperCase() === houseNumber,
     );
     if (isDuplicate) {
-      setError(`Nomor rumah ${houseNumber} sudah terdaftar di RT 01.`);
+      setError(`Nomor rumah ${houseNumber} sudah terdaftar di ${rtName}.`);
       return;
     }
     setIsSaving(true);
@@ -364,6 +383,50 @@ function Dashboard({
     }
   }
 
+  async function handleUserRoleChange(userId: number, nextRole: Role) {
+    setIsSaving(true);
+    setError("");
+    try {
+      const updatedUser = await updateUserRole(userId, nextRole);
+      setUsers((current) =>
+        current.map((account) =>
+          account.id === updatedUser.id ? updatedUser : account,
+        ),
+      );
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Hak akses gagal diperbarui",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleAreaSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError("");
+    try {
+      const updatedArea = await updateArea(rtId, {
+        name: String(form.get("name") ?? "").trim(),
+        chair: String(form.get("chair") ?? "").trim(),
+      });
+      setArea((current) => ({ ...updatedArea, rw: current?.rw }));
+      setIsAreaFormOpen(false);
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Profil area gagal diperbarui",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   const residentName = new Map(
     residents.map((resident) => [resident.id, resident.name]),
   );
@@ -398,76 +461,80 @@ function Dashboard({
         : (roleLabels[residentFilter as Role] ??
           houseNumber.get(Number(residentFilter)) ??
           "Filter aktif");
+  const rtName = area?.name ?? "RT 01";
+  const profileName = role === "ketua" && area?.chair ? area.chair : user.name;
+  const todayLabel = new Date()
+    .toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+    .toUpperCase();
 
   return (
     <main className="flex min-h-screen bg-[#f7f9f6] font-sans text-[#172522]">
-      <aside className="flex w-[250px] shrink-0 flex-col bg-[#17382e] px-[18px] pb-5 pt-7 text-[#d6e5dc] max-[800px]:w-[68px] max-[800px]:px-2.5 max-[800px]:py-5">
-        <div className="flex items-center gap-2.5 px-3 pb-[47px] text-[21px] font-extrabold tracking-[-0.7px] text-white max-[800px]:px-[9px] max-[800px]:pb-[35px]">
+      <aside className="flex w-[250px] shrink-0 flex-col bg-[#17382e] px-[18px] pb-5 pt-7 text-[#d6e5dc] max-[900px]:w-[68px] max-[900px]:px-2.5 max-[900px]:py-5">
+        <div className="flex items-center gap-2.5 px-3 pb-[47px] text-[21px] font-extrabold tracking-[-0.7px] text-white max-[900px]:px-[9px] max-[900px]:pb-[35px]">
           <span className="grid size-[29px] place-items-center rounded-[9px_9px_9px_2px] bg-[#e87e42] font-mono text-[15px] text-white">
             R
           </span>
-          <span>rukunin</span>
+          <span className="max-[900px]:hidden">rukunin</span>
         </div>
-        <div className="px-[13px] pb-2.5 font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#78968a] max-[800px]:text-[0px]">
+        <div className="px-[13px] pb-2.5 font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#78968a] max-[900px]:text-[0px]">
           AREA KERJA
         </div>
-        <div className="relative flex items-center gap-2 rounded-lg border border-[#3b6b57] bg-[#285442] p-3 text-[13px] font-bold text-white max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-3.5">
-          <span className="size-[7px] rounded-full bg-[#f4b85c]" /> RT 01{" "}
-          <span className="ml-auto text-[#a3c3b2] max-[800px]:hidden">v</span>
-          <small className="absolute bottom-2 left-[27px] text-[10px] font-medium text-[#9ab4a7] max-[800px]:hidden">
-            RW 01
-          </small>
+        <div className="relative flex items-center gap-2 rounded-lg border border-[#3b6b57] bg-[#285442] p-3 text-[13px] font-bold text-white max-[900px]:justify-center max-[900px]:px-0 max-[900px]:py-3.5">
+          <span className="size-[7px] shrink-0 rounded-full bg-[#f4b85c]" />
+          <span className="truncate max-[900px]:hidden">{rtName}</span>
+          <span className="ml-auto text-[#a3c3b2] max-[900px]:hidden">v</span>
         </div>
+        {role === "ketua" && (
+          <button
+            className="mt-2 rounded-[6px] border border-[#3b6b57] bg-transparent px-3 py-2 text-left text-[10px] font-bold text-[#b8cec0] hover:bg-[#285442] max-[900px]:hidden"
+            onClick={() => setIsAreaFormOpen(true)}
+            type="button"
+          >
+            Pengaturan area
+          </button>
+        )}
         <nav className="mt-[33px] grid gap-1.5" aria-label="Navigasi utama">
-          <NavLink
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
-            }
-            to="/warga"
-          >
-            <span className="max-[800px]:text-[10px]">01</span> Warga
-          </NavLink>
-          <NavLink
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
-            }
-            to="/iuran"
-          >
-            <span className="max-[800px]:text-[10px]">02</span> Iuran
-          </NavLink>
-          <NavLink
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
-            }
-            to="/kas"
-          >
-            <span className="max-[800px]:text-[10px]">03</span> Kas RT
-          </NavLink>
-          <NavLink
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[800px]:justify-center max-[800px]:px-0 max-[800px]:py-[13px] max-[800px]:text-[0px]`
-            }
-            to="/pengumuman"
-          >
-            <span className="max-[800px]:text-[10px]">04</span> Pengumuman
-          </NavLink>
+          {[
+            ["01", "Warga", "/warga"],
+            ["02", "Iuran", "/iuran"],
+            ["03", "Kas RT", "/kas"],
+            ["04", "Pengumuman", "/pengumuman"],
+          ].map(([number, label, path]) => (
+            <NavLink
+              className={({ isActive }) =>
+                `flex items-center gap-3 rounded-[7px] p-3 text-[13px] font-semibold no-underline ${isActive ? "bg-[#f2f6f1] text-[#172522]" : "text-[#9cb7a9] hover:bg-[#f2f6f1] hover:text-[#172522]"} max-[900px]:justify-center max-[900px]:px-0 max-[900px]:py-[13px] max-[900px]:text-[0px]`
+              }
+              key={path}
+              to={path}
+            >
+              <span className="max-[900px]:text-[10px]">{number}</span> {label}
+            </NavLink>
+          ))}
         </nav>
-        <div className="mt-auto flex items-center gap-2.5 border-t border-[#315646] px-2 pb-0 pt-[18px] text-[11px] max-[800px]:justify-center max-[800px]:px-0">
+        <NavLink
+          className="mt-auto flex items-center gap-2.5 border-t border-[#315646] px-2 pb-0 pt-[18px] text-[11px] no-underline max-[900px]:justify-center max-[900px]:px-0"
+          to="/profil"
+        >
           <div className="grid size-8 place-items-center rounded-full bg-[#e8a266] font-mono text-[11px] text-[#673a1d]">
-            BS
+            {profileName.slice(0, 1).toUpperCase()}
           </div>
-          <div>
-            <strong className="block text-[11px] text-white max-[800px]:hidden">
-              {user.name}
+          <div className="max-[900px]:hidden">
+            <strong className="block text-[11px] text-white">
+              {profileName}
             </strong>
-            <small className="mt-[3px] block text-[#87a698] max-[800px]:hidden">
+            <small className="mt-[3px] block text-[#87a698]">
               {roleLabels[role]}
             </small>
           </div>
-          <span className="ml-auto tracking-[2px] text-[#8ca99b] max-[800px]:hidden">
+          <span className="ml-auto tracking-[2px] text-[#8ca99b] max-[900px]:hidden">
             ...
           </span>
-        </div>
+        </NavLink>
         <button
           className="mt-2.5 rounded-[5px] border border-[#3b6b57] bg-transparent px-[9px] py-[7px] text-[10px] text-[#b8cec0]"
           onClick={onLogout}
@@ -477,22 +544,24 @@ function Dashboard({
       </aside>
 
       <section
-        className="min-w-0 max-w-[1170px] flex-1 px-[54px] pb-[70px] pt-[43px] max-[800px]:px-5 max-[800px]:pb-[50px] max-[800px]:pt-[29px]"
+        className="min-w-0 max-w-[1170px] flex-1 px-[54px] pb-[70px] pt-[43px] max-[900px]:px-5 max-[900px]:pb-[50px] max-[900px]:pt-[29px]"
         id="warga"
       >
         <header className="flex items-center justify-between">
           <div>
             <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-              SELASA, 19 AGUSTUS 2026
+              {todayLabel}
             </span>
-            <h1 className="mt-2.5 text-[34px] tracking-[-1.5px] max-[800px]:text-[28px]">
+            <h1 className="mt-2.5 text-[34px] tracking-[-1.5px] max-[900px]:text-[28px]">
               {activePage === "warga"
                 ? "Data warga"
                 : activePage === "iuran"
                   ? "Iuran warga"
                   : activePage === "kas"
                     ? "Kas RT"
-                    : "Pengumuman"}
+                    : activePage === "profil"
+                      ? "Profil pengguna"
+                      : "Pengumuman"}
             </h1>
           </div>
           <div className="flex items-center gap-3.5 max-[500px]:gap-2">
@@ -504,21 +573,114 @@ function Dashboard({
             </button>
             <div className="flex items-center gap-3.5 border-l border-[#e1e7e2] pl-[18px] text-xs font-bold text-[#57655f]">
               <span className="grid size-[30px] place-items-center rounded-full bg-[#e8a266] font-mono text-[10px] text-[#673a1d]">
-                BS
+                {profileName.slice(0, 1).toUpperCase()}
               </span>
-              <span className="max-[500px]:hidden">{roleLabels[role]}</span>
+              <div className="max-[500px]:hidden">
+                <span className="block">{roleLabels[role]}</span>
+                <span className="mt-0.5 block text-[10px] font-medium text-[#93a19a]">
+                  {rtName}
+                </span>
+              </div>
             </div>
           </div>
         </header>
+        {activePage === "profil" && (
+          <section className="mt-[25px] grid gap-5" id="profil">
+            <div className="rounded-[10px] border border-[#e1e7e2] bg-white p-7 max-[500px]:p-5">
+              <div className="flex items-start gap-5 max-[500px]:flex-col">
+                <div className="grid size-16 shrink-0 place-items-center rounded-[18px] bg-[#dcefe3] font-mono text-xl font-medium text-[#236b4a]">
+                  {profileName.slice(0, 1).toUpperCase()}
+                </div>
+                <div>
+                  <span className="font-mono text-[10px] font-medium tracking-[1.1px] text-[#93a19a]">
+                    PROFIL PENGGUNA
+                  </span>
+                  <h2 className="mt-2 text-2xl tracking-[-0.7px]">
+                    {profileName}
+                  </h2>
+                  <p className="mt-1 text-xs text-[#78847f]">
+                    Kelola informasi akun dan lihat akses area kerja Anda.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-5 max-[700px]:grid-cols-1">
+              <div className="rounded-[10px] border border-[#e1e7e2] bg-white p-6">
+                <span className="font-mono text-[10px] font-medium tracking-[1.1px] text-[#93a19a]">
+                  INFORMASI AKUN
+                </span>
+                <dl className="mt-5 grid gap-4">
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      Nama
+                    </dt>
+                    <dd className="mt-1 text-sm font-bold text-[#172522]">
+                      {profileName}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      Username
+                    </dt>
+                    <dd className="mt-1 text-sm font-bold text-[#172522]">
+                      {user.username}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      Hak akses
+                    </dt>
+                    <dd className="mt-1">
+                      <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
+                        {roleLabels[role]}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <div className="rounded-[10px] border border-[#e1e7e2] bg-white p-6">
+                <span className="font-mono text-[10px] font-medium tracking-[1.1px] text-[#93a19a]">
+                  AREA KERJA
+                </span>
+                <dl className="mt-5 grid gap-4">
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      RT aktif
+                    </dt>
+                    <dd className="mt-1 text-sm font-bold text-[#172522]">
+                      {rtName}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      Nama Ketua RT
+                    </dt>
+                    <dd className="mt-1 text-sm font-bold text-[#172522]">
+                      {area?.chair || "Belum diisi"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] font-bold text-[#9aa69f]">
+                      Status akun
+                    </dt>
+                    <dd className="mt-1 text-sm font-bold text-[#236b4a]">
+                      Aktif
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </section>
+        )}
         {activePage === "pengumuman" && (
           <section
             className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
             id="pengumuman"
           >
-            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[900px]:flex-col max-[900px]:items-start max-[900px]:gap-[15px]">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KOMUNIKASI RT 01
+                  KOMUNIKASI {rtName}
                 </span>
                 <h2 className="mt-2 text-lg tracking-[-0.5px]">Pengumuman</h2>
               </div>
@@ -544,7 +706,7 @@ function Dashboard({
                   >
                     <div className="flex items-center gap-[9px] text-[11px] text-[#78847f]">
                       <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
-                        RT 01
+                        {rtName}
                       </span>
                       <span>
                         {announcement.created_at
@@ -571,8 +733,8 @@ function Dashboard({
         )}
         {activePage === "warga" && (
           <div>
-            <div className="my-[30px] flex items-center justify-between text-[13px] text-[#78847f] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
-              <p>Kelola data warga dan rumah di lingkungan RT 01.</p>
+            <div className="my-[30px] flex items-center justify-between text-[13px] text-[#78847f] max-[900px]:flex-col max-[900px]:items-start max-[900px]:gap-[15px]">
+              <p>Kelola data warga dan rumah di lingkungan {rtName}.</p>
               <div className="flex gap-[9px]">
                 {canManageResidents && (
                   <button
@@ -602,7 +764,7 @@ function Dashboard({
               </div>
             )}
             <section
-              className="grid grid-cols-3 gap-[15px] max-[800px]:grid-cols-1"
+              className="grid grid-cols-3 gap-[15px] max-[900px]:grid-cols-1"
               aria-label="Ringkasan data"
             >
               <article className="min-h-[135px] rounded-[7px] border border-t-[3px] border-[#e1e7e2] border-t-[#e87e42] bg-white px-[21px] py-5">
@@ -613,7 +775,7 @@ function Dashboard({
                   {isLoading ? "--" : residents.length}
                 </strong>
                 <span className="text-[11px] text-[#9ba49f]">
-                  terdata di RT 01
+                  terdata di {rtName}
                 </span>
               </article>
               <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
@@ -644,16 +806,16 @@ function Dashboard({
               </article>
             </section>
             <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
-              <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[18px]">
+              <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px] max-[900px]:flex-col max-[900px]:items-start max-[900px]:gap-[18px]">
                 <div>
                   <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                    DATABASE RT 01
+                    DATABASE {rtName}
                   </span>
                   <h2 className="mt-2 text-lg tracking-[-0.5px]">
                     Daftar warga
                   </h2>
                 </div>
-                <div className="flex items-center gap-2.5 max-[800px]:w-full">
+                <div className="flex items-center gap-2.5 max-[900px]:w-full">
                   <label className="flex flex-1 items-center gap-2 rounded-[5px] border border-[#e1e7e2] px-2.5 py-2 text-[#9aa69f]">
                     <span>/</span>
                     <input
@@ -664,7 +826,7 @@ function Dashboard({
                   </label>
                   <div className="relative">
                     <button
-                      className={`rounded-[5px] border px-3 py-2 text-[11px] font-bold max-[800px]:px-2.5 ${residentFilter === "all" ? "border-[#d3ddd6] bg-transparent text-[#57655f]" : "border-[#b9d8c3] bg-[#edf7ef] text-[#236b4a]"}`}
+                      className={`rounded-[5px] border px-3 py-2 text-[11px] font-bold max-[900px]:px-2.5 ${residentFilter === "all" ? "border-[#d3ddd6] bg-transparent text-[#57655f]" : "border-[#b9d8c3] bg-[#edf7ef] text-[#236b4a]"}`}
                       onClick={() => setIsFilterOpen((open) => !open)}
                       type="button"
                     >
@@ -822,7 +984,7 @@ function Dashboard({
               <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
                 <div>
                   <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                    DATA PROPERTI RT 01
+                    DATA PROPERTI {rtName}
                   </span>
                   <h2 className="mt-2 text-lg tracking-[-0.5px]">
                     Daftar rumah
@@ -902,12 +1064,9 @@ function Dashboard({
                       Akun akses
                     </h2>
                   </div>
-                  <button
-                    className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
-                    onClick={() => setIsUserFormOpen(true)}
-                  >
-                    <span>+</span> Buat akun
-                  </button>
+                  <span className="text-[11px] text-[#78847f]">
+                    Ubah role langsung di tabel
+                  </span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-left text-xs">
@@ -932,13 +1091,35 @@ function Dashboard({
                         users.map((account) => (
                           <tr key={account.id}>
                             <td>
-                              <strong>{account.name}</strong>
+                              <strong>
+                                {account.id === user.id
+                                  ? profileName
+                                  : account.name}
+                              </strong>
                             </td>
                             <td>{account.username}</td>
                             <td>
-                              <span className="rounded bg-[#dcefe3] px-2 py-1 text-[10px] font-bold text-[#236b4a]">
-                                {roleLabels[account.role]}
-                              </span>
+                              <select
+                                className="rounded-[5px] border border-[#d3ddd6] bg-white px-2 py-1 text-[10px] font-bold text-[#236b4a] outline-0 focus:border-[#236b4a]"
+                                value={
+                                  account.id === user.id
+                                    ? "ketua"
+                                    : account.role
+                                }
+                                onChange={(event) =>
+                                  void handleUserRoleChange(
+                                    account.id,
+                                    event.target.value as Role,
+                                  )
+                                }
+                                disabled={isSaving || account.id === user.id}
+                              >
+                                <option value="ketua">Ketua RT</option>
+                                <option value="bendahara">Bendahara</option>
+                                <option value="sekretaris">Sekretaris</option>
+                                <option value="wakil">Wakil RT</option>
+                                <option value="warga">Warga</option>
+                              </select>
                             </td>
                           </tr>
                         ))
@@ -956,10 +1137,10 @@ function Dashboard({
             className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
             id="iuran"
           >
-            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[900px]:flex-col max-[900px]:items-start max-[900px]:gap-[15px]">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KEUANGAN RT 01
+                  KEUANGAN {rtName}
                 </span>
                 <h2 className="mt-2 text-lg tracking-[-0.5px]">Iuran warga</h2>
               </div>
@@ -972,7 +1153,7 @@ function Dashboard({
                 </button>
               )}
             </div>
-            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[800px]:gap-[35px]">
+            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[900px]:gap-[35px]">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
                   TOTAL TERCATAT
@@ -1045,10 +1226,10 @@ function Dashboard({
             className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white"
             id="kas"
           >
-            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[800px]:flex-col max-[800px]:items-start max-[800px]:gap-[15px]">
+            <div className="flex items-center justify-between border-b border-[#e1e7e2] px-[23px] pb-[18px] pt-[22px] max-[900px]:flex-col max-[900px]:items-start max-[900px]:gap-[15px]">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KEUANGAN RT 01
+                  KEUANGAN {rtName}
                 </span>
                 <h2 className="mt-2 text-lg tracking-[-0.5px]">Kas RT</h2>
               </div>
@@ -1061,7 +1242,7 @@ function Dashboard({
                 </button>
               )}
             </div>
-            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[800px]:gap-[35px]">
+            <div className="flex gap-[70px] border-b border-[#e1e7e2] bg-[#fbfcfa] px-[23px] py-[19px] max-[900px]:gap-[35px]">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
                   SALDO BERJALAN
@@ -1223,6 +1404,50 @@ function Dashboard({
                   defaultValue={editingResident?.no_kk ?? ""}
                 />
               </label>
+              {!editingResident && role === "ketua" && (
+                <fieldset className="grid gap-4 rounded-[8px] border border-[#dcefe3] bg-[#f7fbf8] p-4">
+                  <legend className="px-1 font-mono text-[10px] font-medium tracking-[1px] text-[#236b4a]">
+                    AKUN LOGIN (OPSIONAL)
+                  </legend>
+                  <p className="-mt-1 text-[11px] leading-5 text-[#78847f]">
+                    Isi jika warga ini juga perlu akses ke aplikasi.
+                  </p>
+                  <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                    Username
+                    <input
+                      className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                      name="username"
+                      placeholder="contoh: bendahara.rt02"
+                    />
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
+                    <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                      Password
+                      <input
+                        className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                        minLength={6}
+                        name="password"
+                        type="password"
+                        placeholder="Minimal 6 karakter"
+                      />
+                    </label>
+                    <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                      Hak akses
+                      <select
+                        className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                        name="account_role"
+                        defaultValue=""
+                      >
+                        <option value="">Pilih role</option>
+                        <option value="bendahara">Bendahara</option>
+                        <option value="sekretaris">Sekretaris</option>
+                        <option value="wakil">Wakil RT</option>
+                        <option value="warga">Warga</option>
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
+              )}
               <div className="mt-6 flex justify-end gap-2.5">
                 <button
                   type="button"
@@ -1243,6 +1468,84 @@ function Dashboard({
                     : editingResident
                       ? "Simpan perubahan"
                       : "Simpan warga"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {isAreaFormOpen && role === "ketua" && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-[#17382e66] p-5"
+          role="presentation"
+        >
+          <section
+            className="max-h-[calc(100vh_-_40px)] w-[min(460px,100%)] overflow-y-auto rounded-[14px] bg-white shadow-[0_24px_70px_#17382e30]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="area-modal-title"
+          >
+            <div className="flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
+              <div>
+                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                  KONFIGURASI AREA
+                </span>
+                <h2
+                  className="mt-2 text-lg tracking-[-0.5px]"
+                  id="area-modal-title"
+                >
+                  Pengaturan RT
+                </h2>
+                <p className="mt-2 text-xs leading-5 text-[#78847f]">
+                  Nama ini akan dipakai di seluruh dashboard dan laporan RT.
+                </p>
+              </div>
+              <button
+                className="border-0 bg-transparent text-lg text-[#78847f]"
+                onClick={() => setIsAreaFormOpen(false)}
+                aria-label="Tutup"
+                type="button"
+              >
+                x
+              </button>
+            </div>
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleAreaSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                Nama RT
+                <input
+                  required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                  name="name"
+                  defaultValue={area?.name ?? ""}
+                  placeholder="Contoh: RT 01"
+                />
+              </label>
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                Nama Ketua RT
+                <input
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                  name="chair"
+                  defaultValue={area?.chair ?? ""}
+                  placeholder="Contoh: Budi Santoso"
+                />
+              </label>
+              <div className="flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
+                <button
+                  type="button"
+                  className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
+                  onClick={() => setIsAreaFormOpen(false)}
+                >
+                  Batal
+                </button>
+                <button
+                  className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white disabled:opacity-50"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Menyimpan..." : "Simpan area"}
                 </button>
               </div>
             </form>
@@ -1446,7 +1749,7 @@ function Dashboard({
             <div className="mb-0 flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KEUANGAN RT 01
+                  KEUANGAN {rtName}
                 </span>
                 <h2
                   className="mt-2 text-lg tracking-[-0.5px]"
@@ -1545,7 +1848,7 @@ function Dashboard({
             <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KAS RT 01
+                  KAS {rtName}
                 </span>
                 <h2
                   className="mt-2 text-lg tracking-[-0.5px]"
@@ -1627,7 +1930,7 @@ function Dashboard({
             <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                  KOMUNIKASI RT 01
+                  KOMUNIKASI {rtName}
                 </span>
                 <h2
                   className="mt-2 text-lg tracking-[-0.5px]"
@@ -1810,6 +2113,10 @@ function App() {
         />
         <Route
           path="/pengumuman"
+          element={<Dashboard user={user} onLogout={handleLogout} />}
+        />
+        <Route
+          path="/profil"
           element={<Dashboard user={user} onLogout={handleLogout} />}
         />
         <Route path="*" element={<Navigate to="/warga" replace />} />
