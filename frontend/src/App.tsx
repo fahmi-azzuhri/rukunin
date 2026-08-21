@@ -87,6 +87,8 @@ function Dashboard({
   const canManageAnnouncements = role === "ketua" || role === "wakil";
   const canManageResidents =
     role === "ketua" || role === "wakil" || role === "sekretaris";
+  const canViewResidentDetails =
+    role === "ketua" || role === "wakil" || role === "sekretaris";
 
   async function loadData() {
     setIsLoading(true);
@@ -778,17 +780,19 @@ function Dashboard({
                   terdata di {rtName}
                 </span>
               </article>
-              <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
-                <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
-                  TOTAL RUMAH
-                </span>
-                <strong className="mt-[13px] block text-[33px] tracking-[-1px]">
-                  {isLoading ? "--" : houses.length}
-                </strong>
-                <span className="text-[11px] text-[#9ba49f]">
-                  rumah terdaftar
-                </span>
-              </article>
+              {canViewResidentDetails && (
+                <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
+                  <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
+                    TOTAL RUMAH
+                  </span>
+                  <strong className="mt-[13px] block text-[33px] tracking-[-1px]">
+                    {isLoading ? "--" : houses.length}
+                  </strong>
+                  <span className="text-[11px] text-[#9ba49f]">
+                    rumah terdaftar
+                  </span>
+                </article>
+              )}
               <article className="min-h-[135px] rounded-[7px] border border-[#e1e7e2] bg-white px-[21px] py-5">
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#8d9a93]">
                   KEPALA KELUARGA
@@ -821,7 +825,11 @@ function Dashboard({
                     <input
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
-                      placeholder="Cari nama atau NIK..."
+                      placeholder={
+                        canViewResidentDetails
+                          ? "Cari nama atau NIK..."
+                          : "Cari nama atau telepon..."
+                      }
                     />
                   </label>
                   <div className="relative">
@@ -899,7 +907,7 @@ function Dashboard({
                   <thead>
                     <tr>
                       <th>WARGA</th>
-                      <th>NIK</th>
+                      {canViewResidentDetails && <th>NIK</th>}
                       <th>NO. RUMAH</th>
                       <th>STATUS</th>
                       <th>TELEPON</th>
@@ -910,7 +918,7 @@ function Dashboard({
                     {isLoading ? (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={canViewResidentDetails ? 6 : 5}
                           className="p-8 text-center text-xs text-[#78847f]"
                         >
                           Memuat data warga...
@@ -919,7 +927,7 @@ function Dashboard({
                     ) : filteredResidents.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={canViewResidentDetails ? 6 : 5}
                           className="p-8 text-center text-xs text-[#78847f]"
                         >
                           Belum ada data warga.
@@ -936,7 +944,9 @@ function Dashboard({
                               <strong>{resident.name}</strong>
                             </div>
                           </td>
-                          <td>{resident.nik || "-"}</td>
+                          {canViewResidentDetails && (
+                            <td>{resident.nik || "-"}</td>
+                          )}
                           <td>
                             <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
                               {houseNumber.get(resident.house_id) ??
@@ -980,79 +990,81 @@ function Dashboard({
                 </table>
               </div>
             </section>
-            <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
-              <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
-                <div>
-                  <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-                    DATA PROPERTI {rtName}
-                  </span>
-                  <h2 className="mt-2 text-lg tracking-[-0.5px]">
-                    Daftar rumah
-                  </h2>
+            {canViewResidentDetails && (
+              <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
+                <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
+                  <div>
+                    <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
+                      DATA PROPERTI {rtName}
+                    </span>
+                    <h2 className="mt-2 text-lg tracking-[-0.5px]">
+                      Daftar rumah
+                    </h2>
+                  </div>
                 </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr>
-                      <th>NOMOR RUMAH</th>
-                      <th>JUMLAH WARGA</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {houses.length === 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-xs">
+                    <thead>
                       <tr>
-                        <td
-                          colSpan={3}
-                          className="p-8 text-center text-xs text-[#78847f]"
-                        >
-                          Belum ada rumah.
-                        </td>
+                        <th>NOMOR RUMAH</th>
+                        <th>JUMLAH WARGA</th>
+                        <th />
                       </tr>
-                    ) : (
-                      houses.map((house) => (
-                        <tr key={house.id}>
-                          <td>
-                            <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
-                              {house.number}
-                            </span>
-                          </td>
-                          <td>
-                            {house.residents?.length ??
-                              residents.filter(
-                                (resident) => resident.house_id === house.id,
-                              ).length}{" "}
-                            warga
-                          </td>
-                          <td>
-                            {canManageResidents && (
-                              <button
-                                className="border-0 bg-transparent text-xs font-bold text-[#78847f]"
-                                onClick={() => {
-                                  setEditingHouse(house);
-                                  setIsHouseFormOpen(true);
-                                }}
-                              >
-                                Edit
-                              </button>
-                            )}
-                            {canManageResidents && (
-                              <button
-                                className="ml-2 border-0 bg-transparent text-xs font-bold text-[#b94b3e]"
-                                onClick={() => void handleDeleteHouse(house)}
-                              >
-                                Hapus
-                              </button>
-                            )}
+                    </thead>
+                    <tbody>
+                      {houses.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="p-8 text-center text-xs text-[#78847f]"
+                          >
+                            Belum ada rumah.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+                      ) : (
+                        houses.map((house) => (
+                          <tr key={house.id}>
+                            <td>
+                              <span className="rounded bg-[#f1f5f1] px-2 py-1 text-[10px] font-bold text-[#57655f]">
+                                {house.number}
+                              </span>
+                            </td>
+                            <td>
+                              {house.residents?.length ??
+                                residents.filter(
+                                  (resident) => resident.house_id === house.id,
+                                ).length}{" "}
+                              warga
+                            </td>
+                            <td>
+                              {canManageResidents && (
+                                <button
+                                  className="border-0 bg-transparent text-xs font-bold text-[#78847f]"
+                                  onClick={() => {
+                                    setEditingHouse(house);
+                                    setIsHouseFormOpen(true);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                              {canManageResidents && (
+                                <button
+                                  className="ml-2 border-0 bg-transparent text-xs font-bold text-[#b94b3e]"
+                                  onClick={() => void handleDeleteHouse(house)}
+                                >
+                                  Hapus
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
             {role === "ketua" && (
               <section className="mt-[25px] overflow-hidden rounded-[7px] border border-[#e1e7e2] bg-white">
                 <div className="flex items-center justify-between px-[23px] pb-[18px] pt-[22px]">
@@ -1114,7 +1126,9 @@ function Dashboard({
                                 }
                                 disabled={isSaving || account.id === user.id}
                               >
-                                <option value="ketua">Ketua RT</option>
+                                {account.id === user.id && (
+                                  <option value="ketua">Ketua RT</option>
+                                )}
                                 <option value="bendahara">Bendahara</option>
                                 <option value="sekretaris">Sekretaris</option>
                                 <option value="wakil">Wakil RT</option>
@@ -1757,6 +1771,9 @@ function Dashboard({
                 >
                   Catat pembayaran
                 </h2>
+                <p className="mt-2 max-w-[360px] text-xs leading-5 text-[#78847f]">
+                  Catat pembayaran iuran warga untuk periode yang dipilih.
+                </p>
               </div>
               <button
                 className="border-0 bg-transparent text-lg text-[#78847f]"
@@ -1766,10 +1783,18 @@ function Dashboard({
                 x
               </button>
             </div>
-            <form onSubmit={handleContributionSubmit}>
-              <label>
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleContributionSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Warga
-                <select required name="resident_id" defaultValue="">
+                <select
+                  required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                  name="resident_id"
+                  defaultValue=""
+                >
                   <option value="" disabled>
                     Pilih warga
                   </option>
@@ -1780,10 +1805,11 @@ function Dashboard({
                   ))}
                 </select>
               </label>
-              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
-                <label>
+              <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                   Bulan
                   <select
+                    className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                     name="month"
                     defaultValue={String(new Date().getMonth() + 1)}
                   >
@@ -1794,27 +1820,29 @@ function Dashboard({
                     ))}
                   </select>
                 </label>
-                <label>
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                   Tahun
                   <input
                     required
+                    className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                     name="year"
                     type="number"
                     defaultValue={new Date().getFullYear()}
                   />
                 </label>
               </div>
-              <label>
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Nominal
                 <input
                   required
+                  className="h-12 rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 text-base font-bold text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="amount"
                   type="number"
                   min="1"
                   placeholder="Contoh: 50000"
                 />
               </label>
-              <div className="mt-6 flex justify-end gap-2.5">
+              <div className="mt-1 flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
                 <button
                   type="button"
                   className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
@@ -1840,12 +1868,12 @@ function Dashboard({
           role="presentation"
         >
           <section
-            className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24]"
+            className="max-h-[calc(100vh_-_40px)] w-[min(560px,100%)] overflow-y-auto rounded-[14px] bg-white shadow-[0_24px_70px_#17382e30]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="expense-modal-title"
           >
-            <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
+            <div className="mb-0 flex items-start justify-between border-b border-[#e1e7e2] bg-[#fbfcfa] px-7 pb-5 pt-6 max-[500px]:px-5">
               <div>
                 <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
                   KAS {rtName}
@@ -1856,6 +1884,10 @@ function Dashboard({
                 >
                   Catat pengeluaran
                 </h2>
+                <p className="mt-2 max-w-[360px] text-xs leading-5 text-[#78847f]">
+                  Simpan transaksi kas RT dengan keterangan dan nominal yang
+                  jelas.
+                </p>
               </div>
               <button
                 className="border-0 bg-transparent text-lg text-[#78847f]"
@@ -1865,19 +1897,27 @@ function Dashboard({
                 x
               </button>
             </div>
-            <form onSubmit={handleExpenseSubmit}>
-              <label>
+            <form
+              className="grid gap-5 p-7 max-[500px]:p-5"
+              onSubmit={handleExpenseSubmit}
+            >
+              <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                 Keterangan
                 <input
                   required
+                  className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                   name="description"
                   placeholder="Contoh: Perbaikan lampu jalan"
                 />
               </label>
-              <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
-                <label>
+              <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                   Kategori
-                  <select name="category" defaultValue="Maintenance">
+                  <select
+                    className="rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 py-3 text-[13px] text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
+                    name="category"
+                    defaultValue="Maintenance"
+                  >
                     <option>Maintenance</option>
                     <option>Security</option>
                     <option>Cleaning</option>
@@ -1885,10 +1925,11 @@ function Dashboard({
                     <option>Lainnya</option>
                   </select>
                 </label>
-                <label>
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                   Nominal
                   <input
                     required
+                    className="h-12 rounded-[7px] border border-[#d3ddd6] bg-white px-3.5 text-base font-bold text-[#172522] outline-0 transition focus:border-[#236b4a] focus:ring-4 focus:ring-[#236b4a]/10"
                     name="amount"
                     type="number"
                     min="1"
@@ -1896,7 +1937,7 @@ function Dashboard({
                   />
                 </label>
               </div>
-              <div className="mt-6 flex justify-end gap-2.5">
+              <div className="mt-1 flex justify-end gap-2.5 border-t border-[#e1e7e2] pt-5">
                 <button
                   type="button"
                   className="rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
