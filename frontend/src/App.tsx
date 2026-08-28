@@ -8,6 +8,8 @@ import {
   storeSession,
 } from "./features/auth/authStorage.ts";
 import { Dashboard } from "./features/dashboard/Dashboard.tsx";
+import { ActivateInvitePage } from "./features/auth/ActivateInvitePage.tsx";
+import { SuperadminPage } from "./features/admin/SuperadminPage.tsx";
 
 function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser);
@@ -22,35 +24,55 @@ function App() {
     setUser(null);
   }
 
-  if (!user) return <LoginPage onLogin={handleLogin} />;
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/warga" replace />} />
         <Route
-          path="/warga"
-          element={<Dashboard user={user} onLogout={handleLogout} />}
+          path="/aktivasi"
+          element={
+            <ActivateInvitePage
+              token={
+                new URLSearchParams(window.location.search).get("token") ?? ""
+              }
+              onLogin={handleLogin}
+            />
+          }
         />
         <Route
-          path="/iuran"
-          element={<Dashboard user={user} onLogout={handleLogout} />}
+          path="*"
+          element={
+            user ? (
+              <AuthenticatedRoutes user={user} onLogout={handleLogout} />
+            ) : (
+              <LoginPage onLogin={handleLogin} />
+            )
+          }
         />
-        <Route
-          path="/kas"
-          element={<Dashboard user={user} onLogout={handleLogout} />}
-        />
-        <Route
-          path="/pengumuman"
-          element={<Dashboard user={user} onLogout={handleLogout} />}
-        />
-        <Route
-          path="/profil"
-          element={<Dashboard user={user} onLogout={handleLogout} />}
-        />
-        <Route path="*" element={<Navigate to="/warga" replace />} />
       </Routes>
     </BrowserRouter>
+  );
+}
+
+function AuthenticatedRoutes({
+  user,
+  onLogout,
+}: {
+  user: AuthUser;
+  onLogout: () => void;
+}) {
+  if (user.role === "superadmin") {
+    return (
+      <Routes>
+        <Route path="/admin" element={<SuperadminPage onLogout={onLogout} />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/warga" replace />} />
+      <Route path="*" element={<Dashboard user={user} onLogout={onLogout} />} />
+    </Routes>
   );
 }
 

@@ -44,7 +44,13 @@ export type Announcement = {
   created_at: number;
 };
 
-export type Role = "ketua" | "bendahara" | "sekretaris" | "wakil" | "warga";
+export type Role =
+  | "superadmin"
+  | "ketua"
+  | "bendahara"
+  | "sekretaris"
+  | "wakil"
+  | "warga";
 export type AuthUser = {
   id: number;
   rt_id: number;
@@ -93,6 +99,31 @@ export function login(username: string, password: string) {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
+}
+
+export function activateInvite(
+  token: string,
+  username: string,
+  password: string,
+) {
+  return request<{ token: string; user: AuthUser }>("/api/auth/activate", {
+    method: "POST",
+    body: JSON.stringify({ token, username, password }),
+  });
+}
+
+export function createManagedRT(input: {
+  rw_name: string;
+  rt_name: string;
+  chair_name: string;
+  username: string;
+}) {
+  return request<{
+    rt: Area;
+    chair: AuthUser;
+    invite_token: string;
+    expires_at: number;
+  }>("/api/admin/rts", { method: "POST", body: JSON.stringify(input) });
 }
 
 export function getCurrentUser() {
