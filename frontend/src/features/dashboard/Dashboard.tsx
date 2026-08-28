@@ -69,11 +69,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     after?: () => void,
   ) => {
     event.preventDefault();
+    const form = event.currentTarget;
     setIsSaving(true);
     state.setError("");
     try {
-      await action(new FormData(event.currentTarget));
-      event.currentTarget.reset();
+      await action(new FormData(form));
+      form.reset();
       after?.();
     } catch (error) {
       state.setError(error instanceof Error ? error.message : fallback);
