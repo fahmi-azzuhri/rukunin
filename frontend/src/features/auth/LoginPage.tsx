@@ -33,9 +33,11 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     <main className="grid min-h-screen place-items-center bg-[#f7f9f6] p-5 font-sans">
       <section className="w-[min(420px,100%)] rounded-[9px] border border-[#e1e7e2] bg-white p-9 shadow-[0_20px_50px_#17382e18]">
         <div className="flex items-center gap-2.5 pb-[38px] text-[21px] font-extrabold tracking-[-0.7px] text-[#172522]">
-          <span className="grid size-[29px] place-items-center rounded-[9px_9px_9px_2px] bg-[#e87e42] font-mono text-[15px] text-white">
-            R
-          </span>
+          <img
+            className="size-[29px] object-contain"
+            src="/rukunin-logo.svg"
+            alt="rukunin"
+          />
           <span>rukunin</span>
         </div>
         <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">

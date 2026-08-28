@@ -23,9 +23,11 @@ export function DashboardSidebar({
   return (
     <aside className="flex w-[250px] shrink-0 flex-col bg-[#17382e] px-[18px] pb-5 pt-7 text-[#d6e5dc] max-[900px]:w-[68px] max-[900px]:px-2.5 max-[900px]:py-5">
       <div className="flex items-center gap-2.5 px-3 pb-[47px] text-[21px] font-extrabold tracking-[-0.7px] text-white max-[900px]:px-[9px] max-[900px]:pb-[35px]">
-        <span className="grid size-[29px] place-items-center rounded-[9px_9px_9px_2px] bg-[#e87e42] font-mono text-[15px] text-white">
-          R
-        </span>
+        <img
+          className="size-[29px] object-contain"
+          src="/rukunin-logo.svg"
+          alt="rukunin"
+        />
         <span className="max-[900px]:hidden">rukunin</span>
       </div>
       <div className="px-[13px] pb-2.5 font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#78968a] max-[900px]:text-[0px]">
