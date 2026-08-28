@@ -10,6 +10,7 @@ import {
 import { Dashboard } from "./features/dashboard/Dashboard.tsx";
 import { ActivateInvitePage } from "./features/auth/ActivateInvitePage.tsx";
 import { SuperadminPage } from "./features/admin/SuperadminPage.tsx";
+import { LandingPage } from "./features/marketing/LandingPage.tsx";
 
 function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser);
@@ -27,6 +28,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {!user && <Route path="/" element={<LandingPage />} />}
+        {!user && (
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+        )}
         <Route
           path="/aktivasi"
           element={
@@ -44,7 +49,7 @@ function App() {
             user ? (
               <AuthenticatedRoutes user={user} onLogout={handleLogout} />
             ) : (
-              <LoginPage onLogin={handleLogin} />
+              <Navigate to="/" replace />
             )
           }
         />
