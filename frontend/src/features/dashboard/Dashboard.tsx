@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import {
   createAnnouncement,
+  createAppointment,
   createContribution,
   createExpense,
   createHouse,
@@ -9,6 +10,7 @@ import {
   createUser,
   deleteHouse,
   deleteResident,
+  updateAppointment,
   updateArea,
   updateHouse,
   updateResident,
@@ -22,6 +24,7 @@ import { DashboardSidebar } from "./DashboardSidebar.tsx";
 import { DashboardHeader } from "./DashboardHeader.tsx";
 import { ProfilePage } from "./ProfilePage.tsx";
 import { AnnouncementsPage } from "./AnnouncementsPage.tsx";
+import { AppointmentsPage } from "./AppointmentsPage.tsx";
 import { ContributionsPage, ExpensesPage } from "./FinancePages.tsx";
 import { ResidentsPage } from "./ResidentsPage.tsx";
 import { DashboardModals } from "./DashboardModals.tsx";
@@ -34,6 +37,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const [resident, setResident] = useState<Resident | null>(null);
   const [house, setHouse] = useState<House | null>(null);
   const [openModal, setOpenModal] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState<
+    import("../../lib/api").Appointment | null
+  >(null);
   const [search, setSearch] = useState("");
   const [residentFilter, setResidentFilter] = useState("all");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -45,6 +51,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     role === "ketua" && state.area?.chair ? state.area.chair : user.name;
   const canManageFinance = role === "bendahara";
   const canManageAnnouncements = role === "ketua" || role === "wakil";
+  const canManageAppointments =
+    role === "ketua" || role === "wakil" || role === "warga";
   const canManageResidents =
     role === "ketua" || role === "wakil" || role === "sekretaris";
   const canViewResidentDetails = canManageResidents;
@@ -222,6 +230,59 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       closeModal,
     );
   }
+
+  async function handleAppointment(event: FormEvent<HTMLFormElement>) {
+    await save(
+      event,
+      async (form) => {
+        const item = await createAppointment(state.rtId, {
+          purpose: String(form.get("purpose") ?? ""),
+          details: String(form.get("details") ?? ""),
+          preferred_date: String(form.get("preferred_date") ?? ""),
+          preferred_time: String(form.get("preferred_time") ?? ""),
+          requester_name: String(form.get("requester_name") ?? user.name),
+        });
+        state.setAppointments((current) => [item, ...current]);
+      },
+      "Janji temu gagal dibuat",
+      closeModal,
+    );
+  }
+
+  async function handleAppointmentReview(event: FormEvent<HTMLFormElement>) {
+    const review = selectedAppointment;
+    if (!review) return;
+
+    if (role === "warga") {
+      setSelectedAppointment(null);
+      closeModal();
+      return;
+    }
+
+    await save(
+      event,
+      async (form) => {
+        const statusValue = String(form.get("status") ?? review.status);
+        const item = await updateAppointment(state.rtId, review.id, {
+          status: statusValue as import("../../lib/api").AppointmentStatus,
+          proposed_date: String(form.get("proposed_date") ?? ""),
+          proposed_time: String(form.get("proposed_time") ?? ""),
+          decision_note: String(form.get("decision_note") ?? ""),
+          assigned_to: String(
+            form.get("assigned_to") ?? review.assigned_to ?? "ketua",
+          ),
+        });
+        state.setAppointments((current) =>
+          current.map((entry) => (entry.id === item.id ? item : entry)),
+        );
+      },
+      "Janji temu gagal diperbarui",
+      () => {
+        setSelectedAppointment(null);
+        closeModal();
+      },
+    );
+  }
   async function handleUser(event: FormEvent<HTMLFormElement>) {
     await save(
       event,
@@ -282,6 +343,17 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     );
   }
 
+  if (state.isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f7f9f6] font-sans">
+        <div className="text-center">
+          <div className="mb-4 size-12 animate-spin rounded-full border-4 border-[#d3ddd6] border-t-[#236b4a]" />
+          <p className="text-sm text-[#68766f]">Memuat dashboard...</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen bg-[#f7f9f6] font-sans text-[#172522]">
       <DashboardSidebar
@@ -313,6 +385,19 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             rtName={rtName}
             canManage={canManageAnnouncements}
             onCreate={() => setOpenModal("announcement")}
+          />
+        )}
+        {activePage === "janji-temu" && (
+          <AppointmentsPage
+            appointments={state.appointments}
+            rtName={rtName}
+            canManage={canManageAppointments}
+            role={role}
+            onCreate={() => setOpenModal("appointment")}
+            onReview={(appointment) => {
+              setSelectedAppointment(appointment);
+              setOpenModal("appointment-review");
+            }}
           />
         )}
         {activePage === "iuran" && (
@@ -393,6 +478,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         contributionOpen={openModal === "contribution"}
         expenseOpen={openModal === "expense"}
         announcementOpen={openModal === "announcement"}
+        appointmentOpen={openModal === "appointment"}
+        appointmentReviewOpen={openModal === "appointment-review"}
+        selectedAppointment={selectedAppointment}
         userOpen={openModal === "user"}
         areaOpen={openModal === "area"}
         houses={state.houses}
@@ -405,6 +493,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         onContributionSubmit={handleContribution}
         onExpenseSubmit={handleExpense}
         onAnnouncementSubmit={handleAnnouncement}
+        onAppointmentSubmit={handleAppointment}
+        onAppointmentReviewSubmit={handleAppointmentReview}
         onUserSubmit={handleUser}
         onAreaSubmit={handleArea}
         onCloseResident={() => {
@@ -418,6 +508,14 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         onCloseContribution={closeModal}
         onCloseExpense={closeModal}
         onCloseAnnouncement={closeModal}
+        onCloseAppointment={() => {
+          setSelectedAppointment(null);
+          closeModal();
+        }}
+        onCloseAppointmentReview={() => {
+          setSelectedAppointment(null);
+          closeModal();
+        }}
         onCloseUser={closeModal}
         onCloseArea={closeModal}
       />

@@ -16,6 +16,7 @@ export const dashboardNavigation = [
   ["02", "Iuran", "/iuran"],
   ["03", "Kas RT", "/kas"],
   ["04", "Pengumuman", "/pengumuman"],
+  ["05", "Janji temu", "/janji-temu"],
 ] as const;
 
 export const pageTitles: Record<string, string> = {
@@ -24,4 +25,5 @@ export const pageTitles: Record<string, string> = {
   kas: "Kas RT",
   profil: "Profil pengguna",
   pengumuman: "Pengumuman",
+  "janji-temu": "Janji temu",
 };

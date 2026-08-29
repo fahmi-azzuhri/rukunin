@@ -44,6 +44,31 @@ export type Announcement = {
   created_at: number;
 };
 
+export type AppointmentStatus =
+  | "pending"
+  | "approved"
+  | "rescheduled"
+  | "rejected";
+
+export type Appointment = {
+  id: number;
+  rt_id: number;
+  user_id?: number;
+  resident_id?: number;
+  requester_name: string;
+  purpose: string;
+  details: string;
+  preferred_date: string;
+  preferred_time: string;
+  status: AppointmentStatus;
+  proposed_date?: string;
+  proposed_time?: string;
+  decision_note?: string;
+  assigned_to?: string;
+  created_at: number;
+  updated_at: number;
+};
+
 export type Role =
   | "superadmin"
   | "ketua"
@@ -275,4 +300,52 @@ export function createAnnouncement(
     method: "POST",
     body: JSON.stringify(announcement),
   });
+}
+
+export function getAppointments(rtId: number) {
+  return request<Appointment[]>(`/api/rts/${rtId}/appointments`);
+}
+
+export function getAppointment(rtId: number, appointmentId: number) {
+  return request<Appointment>(`/api/rts/${rtId}/appointments/${appointmentId}`);
+}
+
+export function createAppointment(
+  rtId: number,
+  appointment: Pick<
+    Appointment,
+    | "purpose"
+    | "details"
+    | "preferred_date"
+    | "preferred_time"
+    | "requester_name"
+  >,
+) {
+  return request<Appointment>(`/api/rts/${rtId}/appointments`, {
+    method: "POST",
+    body: JSON.stringify(appointment),
+  });
+}
+
+export function updateAppointment(
+  rtId: number,
+  appointmentId: number,
+  review: Partial<
+    Pick<
+      Appointment,
+      | "status"
+      | "proposed_date"
+      | "proposed_time"
+      | "decision_note"
+      | "assigned_to"
+    >
+  >,
+) {
+  return request<Appointment>(
+    `/api/rts/${rtId}/appointments/${appointmentId}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(review),
+    },
+  );
 }

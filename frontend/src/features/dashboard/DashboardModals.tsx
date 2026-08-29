@@ -1,6 +1,10 @@
 import type { FormEvent, ReactNode } from "react";
-import type { Area, House, Resident } from "../../lib/api";
+import type { Appointment, Area, House, Resident } from "../../lib/api";
 import type { Role } from "./dashboardConfig.ts";
+import {
+  appointmentPurposes,
+  getPurposeLabel,
+} from "../../lib/appointmentUtils";
 import { Modal } from "../../components/ui/Modal.tsx";
 import { ResidentModal } from "./ResidentModal.tsx";
 
@@ -12,6 +16,9 @@ type DashboardModalsProps = {
   contributionOpen: boolean;
   expenseOpen: boolean;
   announcementOpen: boolean;
+  appointmentOpen: boolean;
+  appointmentReviewOpen: boolean;
+  selectedAppointment: Appointment | null;
   userOpen: boolean;
   areaOpen: boolean;
   houses: House[];
@@ -24,6 +31,8 @@ type DashboardModalsProps = {
   onContributionSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onExpenseSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onAnnouncementSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onAppointmentSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onAppointmentReviewSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onUserSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onAreaSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onCloseResident: () => void;
@@ -31,6 +40,8 @@ type DashboardModalsProps = {
   onCloseContribution: () => void;
   onCloseExpense: () => void;
   onCloseAnnouncement: () => void;
+  onCloseAppointment: () => void;
+  onCloseAppointmentReview: () => void;
   onCloseUser: () => void;
   onCloseArea: () => void;
 };
@@ -216,6 +227,194 @@ export function DashboardModals(props: DashboardModalsProps) {
             onCancel={props.onCloseAnnouncement}
           />
         </form>
+      </SimpleModal>
+      <SimpleModal
+        open={props.appointmentOpen}
+        titleId="appointment-modal-title"
+        eyebrow="PELAYANAN RT"
+        title="Ajukan janji temu"
+        description="Ajukan kebutuhan surat pengantar atau keperluan ke RT. Ketua RT akan menilai dan memberi opsi lain bila perlu."
+        onClose={props.onCloseAppointment}
+      >
+        <form className={formClass} onSubmit={props.onAppointmentSubmit}>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Nama pemohon
+            <input
+              className={fieldClass}
+              name="requester_name"
+              placeholder="Contoh: Budi Santoso"
+            />
+          </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Keperluan
+            <select
+              required
+              className={fieldClass}
+              name="purpose"
+              defaultValue=""
+            >
+              <option value="">Pilih keperluan Anda</option>
+              {appointmentPurposes.map((purpose) => (
+                <option key={purpose.value} value={purpose.value}>
+                  {purpose.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Detail kebutuhan
+            <textarea
+              className={`min-h-[120px] ${fieldClass} leading-6`}
+              name="details"
+              placeholder="Jelaskan kebutuhan Anda, misalnya surat pengantar untuk dokumen, izin, atau kegiatan RT."
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+            <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+              Tanggal usulan
+              <input
+                required
+                className={fieldClass}
+                name="preferred_date"
+                type="date"
+              />
+            </label>
+            <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+              Jam usulan
+              <input
+                required
+                className={fieldClass}
+                name="preferred_time"
+                type="time"
+              />
+            </label>
+          </div>
+          <FormActions
+            isSaving={props.isSaving}
+            submit="Ajukan janji temu"
+            onCancel={props.onCloseAppointment}
+          />
+        </form>
+      </SimpleModal>
+      <SimpleModal
+        open={props.appointmentReviewOpen && !!props.selectedAppointment}
+        titleId="appointment-review-modal-title"
+        eyebrow={
+          props.role === "warga" ? "STATUS PERMOHONAN" : "TINJAU PERMOHONAN"
+        }
+        title={
+          props.role === "warga"
+            ? "Status janji temu Anda"
+            : "Tinjau janji temu"
+        }
+        description={
+          props.role === "warga"
+            ? "Lihat status permohonan janji temu Anda dari Ketua atau Wakil RT."
+            : "Ketua RT dapat menyetujui, menolak, atau mengusulkan hari lain. Wakil RT dapat mengusulkan penugasan dan jadwal alternatif."
+        }
+        onClose={props.onCloseAppointmentReview}
+      >
+        {props.selectedAppointment && (
+          <form
+            className={formClass}
+            onSubmit={props.onAppointmentReviewSubmit}
+          >
+            <div className="rounded-[10px] bg-[#f5f7f5] p-4 text-[12px] text-[#51615d]">
+              <div>
+                <strong>Nama:</strong>{" "}
+                {props.selectedAppointment.requester_name}
+              </div>
+              <div>
+                <strong>Keperluan:</strong>{" "}
+                {getPurposeLabel(props.selectedAppointment.purpose)}
+              </div>
+              <div>
+                <strong>Detail:</strong>{" "}
+                {props.selectedAppointment.details || "(Tidak ada)"}
+              </div>
+              <div>
+                <strong>Usulan awal:</strong>{" "}
+                {props.selectedAppointment.preferred_date}{" "}
+                {props.selectedAppointment.preferred_time}
+              </div>
+            </div>
+            {props.role !== "warga" && (
+              <>
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                  Status
+                  <select
+                    className={fieldClass}
+                    name="status"
+                    defaultValue={props.selectedAppointment.status}
+                  >
+                    <option value="approved">Disetujui</option>
+                    <option value="rescheduled">Diusulkan hari lain</option>
+                    <option value="rejected">Ditolak</option>
+                  </select>
+                </label>
+                <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+                  <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                    Tanggal alternatif
+                    <input
+                      className={fieldClass}
+                      name="proposed_date"
+                      type="date"
+                      defaultValue={
+                        props.selectedAppointment.proposed_date ?? ""
+                      }
+                    />
+                  </label>
+                  <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                    Jam alternatif
+                    <input
+                      className={fieldClass}
+                      name="proposed_time"
+                      type="time"
+                      defaultValue={
+                        props.selectedAppointment.proposed_time ?? ""
+                      }
+                    />
+                  </label>
+                </div>
+                <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                  Penanggung jawab
+                  <select
+                    className={fieldClass}
+                    name="assigned_to"
+                    defaultValue={
+                      props.selectedAppointment.assigned_to ?? "ketua"
+                    }
+                  >
+                    <option value="ketua">Ketua RT</option>
+                    <option value="wakil">Wakil RT</option>
+                  </select>
+                </label>
+              </>
+            )}
+            {props.selectedAppointment.decision_note && (
+              <div className="rounded-[10px] bg-[#f5f7f5] p-4 text-[12px] text-[#51615d]">
+                <strong>Catatan dari RT:</strong>
+                <p className="mt-2 whitespace-pre-wrap text-[11px]">
+                  {props.selectedAppointment.decision_note}
+                </p>
+              </div>
+            )}
+            {props.selectedAppointment.proposed_date && (
+              <div className="rounded-[10px] bg-[#dfe5ff] p-4 text-[12px] text-[#364a84]">
+                <strong>Jadwal yang diusulkan:</strong>
+                <p className="mt-2">
+                  {props.selectedAppointment.proposed_date}{" "}
+                  {props.selectedAppointment.proposed_time}
+                </p>
+              </div>
+            )}
+            <FormActions
+              isSaving={props.isSaving}
+              submit={props.role === "warga" ? "Tutup" : "Simpan keputusan"}
+              onCancel={props.onCloseAppointmentReview}
+            />
+          </form>
+        )}
       </SimpleModal>
       <SimpleModal
         open={props.userOpen}

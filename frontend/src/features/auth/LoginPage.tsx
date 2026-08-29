@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../../lib/api";
 import type { AuthUser } from "../../lib/api";
 
@@ -8,6 +9,7 @@ type LoginPageProps = {
 };
 
 export function LoginPage({ onLogin }: LoginPageProps) {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,6 +22,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     try {
       const result = await login(username, password);
       onLogin(result.user, result.token);
+      // Navigate to dashboard based on role
+      const destination =
+        result.user.role === "superadmin" ? "/admin" : "/warga";
+      navigate(destination);
     } catch (loginError) {
       setError(
         loginError instanceof Error ? loginError.message : "Login gagal",

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   getAnnouncements,
+  getAppointments,
   getArea,
   getContributions,
   getExpenses,
@@ -10,6 +11,7 @@ import {
 } from "../../lib/api";
 import type {
   Announcement,
+  Appointment,
   Area,
   AuthUser,
   Contribution,
@@ -24,6 +26,7 @@ export function useDashboardState(user: AuthUser) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [area, setArea] = useState<Area | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +44,7 @@ export function useDashboardState(user: AuthUser) {
       getContributions(rtId),
       getExpenses(rtId),
       getAnnouncements(rtId),
+      getAppointments(rtId),
     ]);
     const [
       areaResult,
@@ -49,6 +53,7 @@ export function useDashboardState(user: AuthUser) {
       contributionResult,
       expenseResult,
       announcementResult,
+      appointmentResult,
     ] = results;
     const failedModules: string[] = [];
 
@@ -67,6 +72,9 @@ export function useDashboardState(user: AuthUser) {
     if (announcementResult.status === "fulfilled")
       setAnnouncements(announcementResult.value);
     else failedModules.push("pengumuman");
+    if (appointmentResult.status === "fulfilled")
+      setAppointments(appointmentResult.value);
+    else failedModules.push("janji temu");
 
     if (user.role === "ketua") {
       try {
@@ -110,6 +118,8 @@ export function useDashboardState(user: AuthUser) {
     setExpenses,
     announcements,
     setAnnouncements,
+    appointments,
+    setAppointments,
     users,
     setUsers,
     area,
