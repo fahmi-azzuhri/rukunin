@@ -103,18 +103,6 @@ export function LandingPage() {
             <div className="absolute -bottom-24 -left-16 size-60 rounded-full bg-[#7fc29e]/10 blur-3xl sm:size-72" />
 
             <div className="relative z-10 flex items-center justify-between px-4 pt-5 sm:px-7 sm:pt-6">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/rukunin-logo.svg"
-                  alt="rukunin"
-                  className="size-6 object-contain brightness-0 invert sm:size-7"
-                />
-
-                <span className="text-sm font-extrabold text-white sm:text-base">
-                  rukunin
-                </span>
-              </div>
-
               <div className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1.5 backdrop-blur sm:px-3">
                 <span className="text-[7px] font-bold tracking-[0.5px] text-white/80 sm:text-[9px] sm:tracking-[0.8px]">
                   ⚡ KELOLA LINGKUNGANMU
