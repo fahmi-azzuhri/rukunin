@@ -2,9 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/rukunin-logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Rukunin | Platform Administrasi Warga</title>
+
+    <script>
+      let titleText = "Rukunin | Platform Administrasi Warga ";
+
+      setInterval(() => {
+        titleText = titleText.substring(1) + titleText.charAt(0);
+        document.title = titleText;
+      }, 250);
+    </script>
   </head>
   <body>
     <div id="root"></div>
