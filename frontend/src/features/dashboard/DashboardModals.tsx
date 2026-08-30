@@ -1,4 +1,5 @@
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent, ReactNode, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import type { Appointment, Area, House, Resident } from "../../lib/api";
 import type { Role } from "./dashboardConfig.ts";
 import {
@@ -51,6 +52,16 @@ const fieldClass =
 const formClass = "grid gap-5 p-7 max-[500px]:p-5";
 
 export function DashboardModals(props: DashboardModalsProps) {
+  const [appointmentReviewStatus, setAppointmentReviewStatus] =
+    useState<string>("pending");
+
+  // Sync status with selected appointment
+  useEffect(() => {
+    if (props.selectedAppointment) {
+      setAppointmentReviewStatus(props.selectedAppointment.status);
+    }
+  }, [props.selectedAppointment?.id]);
+
   return (
     <>
       <ResidentModal
@@ -345,44 +356,74 @@ export function DashboardModals(props: DashboardModalsProps) {
                   <select
                     className={fieldClass}
                     name="status"
-                    defaultValue={props.selectedAppointment.status}
+                    value={appointmentReviewStatus}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                      setAppointmentReviewStatus(event.target.value)
+                    }
                   >
                     <option value="approved">Disetujui</option>
                     <option value="rescheduled">Diusulkan hari lain</option>
                     <option value="rejected">Ditolak</option>
                   </select>
                 </label>
-                <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+
+                {appointmentReviewStatus === "rescheduled" && (
+                  <div className="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1">
+                    <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                      Tanggal alternatif
+                      <input
+                        className={fieldClass}
+                        name="proposed_date"
+                        type="date"
+                        defaultValue={
+                          props.selectedAppointment?.proposed_date ?? ""
+                        }
+                        required
+                      />
+                    </label>
+                    <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+                      Jam alternatif
+                      <input
+                        className={fieldClass}
+                        name="proposed_time"
+                        type="time"
+                        defaultValue={
+                          props.selectedAppointment?.proposed_time ?? ""
+                        }
+                        required
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {appointmentReviewStatus !== "approved" && (
                   <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
-                    Tanggal alternatif
-                    <input
-                      className={fieldClass}
-                      name="proposed_date"
-                      type="date"
+                    {appointmentReviewStatus === "rejected"
+                      ? "Alasan penolakan"
+                      : "Catatan keputusan"}
+                    <textarea
+                      className={`min-h-[100px] ${fieldClass} leading-6`}
+                      name="decision_note"
                       defaultValue={
-                        props.selectedAppointment.proposed_date ?? ""
+                        props.selectedAppointment?.decision_note ?? ""
                       }
+                      placeholder={
+                        appointmentReviewStatus === "rejected"
+                          ? "Jelaskan alasan penolakan..."
+                          : "Jelaskan keputusan atau instruksi lanjutan..."
+                      }
+                      required
                     />
                   </label>
-                  <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
-                    Jam alternatif
-                    <input
-                      className={fieldClass}
-                      name="proposed_time"
-                      type="time"
-                      defaultValue={
-                        props.selectedAppointment.proposed_time ?? ""
-                      }
-                    />
-                  </label>
-                </div>
+                )}
+
                 <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
                   Penanggung jawab
                   <select
                     className={fieldClass}
                     name="assigned_to"
                     defaultValue={
-                      props.selectedAppointment.assigned_to ?? "ketua"
+                      props.selectedAppointment?.assigned_to ?? "ketua"
                     }
                   >
                     <option value="ketua">Ketua RT</option>
@@ -391,23 +432,25 @@ export function DashboardModals(props: DashboardModalsProps) {
                 </label>
               </>
             )}
-            {props.selectedAppointment.decision_note && (
-              <div className="rounded-[10px] bg-[#f5f7f5] p-4 text-[12px] text-[#51615d]">
-                <strong>Catatan dari RT:</strong>
-                <p className="mt-2 whitespace-pre-wrap text-[11px]">
-                  {props.selectedAppointment.decision_note}
-                </p>
-              </div>
-            )}
-            {props.selectedAppointment.proposed_date && (
-              <div className="rounded-[10px] bg-[#dfe5ff] p-4 text-[12px] text-[#364a84]">
-                <strong>Jadwal yang diusulkan:</strong>
-                <p className="mt-2">
-                  {props.selectedAppointment.proposed_date}{" "}
-                  {props.selectedAppointment.proposed_time}
-                </p>
-              </div>
-            )}
+            {props.role === "warga" &&
+              props.selectedAppointment.decision_note && (
+                <div className="rounded-[10px] bg-[#f5f7f5] p-4 text-[12px] text-[#51615d]">
+                  <strong>Catatan dari RT:</strong>
+                  <p className="mt-2 whitespace-pre-wrap text-[11px]">
+                    {props.selectedAppointment.decision_note}
+                  </p>
+                </div>
+              )}
+            {props.role === "warga" &&
+              props.selectedAppointment.proposed_date && (
+                <div className="rounded-[10px] bg-[#dfe5ff] p-4 text-[12px] text-[#364a84]">
+                  <strong>Jadwal yang diusulkan:</strong>
+                  <p className="mt-2">
+                    {props.selectedAppointment.proposed_date}{" "}
+                    {props.selectedAppointment.proposed_time}
+                  </p>
+                </div>
+              )}
             <FormActions
               isSaving={props.isSaving}
               submit={props.role === "warga" ? "Tutup" : "Simpan keputusan"}
