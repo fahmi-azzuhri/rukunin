@@ -6,6 +6,7 @@ import {
   createContribution,
   createExpense,
   createHouse,
+  createMeetingNote,
   createResident,
   createUser,
   deleteHouse,
@@ -28,6 +29,7 @@ import { AppointmentsPage } from "./AppointmentsPage.tsx";
 import { ContributionsPage, ExpensesPage } from "./FinancePages.tsx";
 import { ResidentsPage } from "./ResidentsPage.tsx";
 import { DashboardModals } from "./DashboardModals.tsx";
+import { MeetingNotesPage } from "./MeetingNotesPage.tsx";
 
 type DashboardProps = { user: AuthUser; onLogout: () => void };
 
@@ -51,11 +53,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     role === "ketua" && state.area?.chair ? state.area.chair : user.name;
   const canManageFinance = role === "bendahara";
   const canManageAnnouncements = role === "ketua" || role === "wakil";
+  const canManageMeetingNotes =
+    role === "sekretaris" || role === "ketua" || role === "wakil";
   const canManageAppointments =
     role === "ketua" || role === "wakil" || role === "warga";
-  const canManageResidents =
-    role === "ketua" || role === "wakil" || role === "sekretaris";
-  const canViewResidentDetails = canManageResidents;
+  const canManageResidents = role === "ketua" || role === "wakil";
+  const canViewResidentDetails = canManageResidents || role === "sekretaris";
   const filteredResidents = filterResidents(
     state.residents,
     search,
@@ -231,6 +234,24 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     );
   }
 
+  async function handleMeetingNote(event: FormEvent<HTMLFormElement>) {
+    await save(
+      event,
+      async (form) => {
+        const item = await createMeetingNote(state.rtId, {
+          title: String(form.get("title") ?? ""),
+          date: String(form.get("date") ?? ""),
+          agenda: String(form.get("agenda") ?? ""),
+          content: String(form.get("content") ?? ""),
+          created_by: user.name,
+        });
+        state.setMeetingNotes((current) => [item, ...current]);
+      },
+      "Notulen rapat gagal disimpan",
+      closeModal,
+    );
+  }
+
   async function handleAppointment(event: FormEvent<HTMLFormElement>) {
     await save(
       event,
@@ -387,6 +408,15 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             onCreate={() => setOpenModal("announcement")}
           />
         )}
+        {activePage === "notulen" && (
+          <MeetingNotesPage
+            notes={state.meetingNotes}
+            rtName={rtName}
+            canManage={canManageMeetingNotes}
+            isChief={role === "ketua"}
+            onCreate={() => setOpenModal("meeting-note")}
+          />
+        )}
         {activePage === "janji-temu" && (
           <AppointmentsPage
             appointments={state.appointments}
@@ -478,6 +508,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         contributionOpen={openModal === "contribution"}
         expenseOpen={openModal === "expense"}
         announcementOpen={openModal === "announcement"}
+        meetingNoteOpen={openModal === "meeting-note"}
         appointmentOpen={openModal === "appointment"}
         appointmentReviewOpen={openModal === "appointment-review"}
         selectedAppointment={selectedAppointment}
@@ -493,6 +524,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         onContributionSubmit={handleContribution}
         onExpenseSubmit={handleExpense}
         onAnnouncementSubmit={handleAnnouncement}
+        onMeetingNoteSubmit={handleMeetingNote}
         onAppointmentSubmit={handleAppointment}
         onAppointmentReviewSubmit={handleAppointmentReview}
         onUserSubmit={handleUser}
@@ -508,6 +540,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         onCloseContribution={closeModal}
         onCloseExpense={closeModal}
         onCloseAnnouncement={closeModal}
+        onCloseMeetingNote={closeModal}
         onCloseAppointment={() => {
           setSelectedAppointment(null);
           closeModal();

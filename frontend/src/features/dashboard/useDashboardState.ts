@@ -6,6 +6,7 @@ import {
   getContributions,
   getExpenses,
   getHouses,
+  getMeetingNotes,
   getResidents,
   getUsers,
 } from "../../lib/api";
@@ -17,6 +18,7 @@ import type {
   Contribution,
   Expense,
   House,
+  MeetingNote,
   Resident,
 } from "../../lib/api";
 
@@ -26,6 +28,7 @@ export function useDashboardState(user: AuthUser) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [meetingNotes, setMeetingNotes] = useState<MeetingNote[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [area, setArea] = useState<Area | null>(null);
@@ -44,6 +47,7 @@ export function useDashboardState(user: AuthUser) {
       getContributions(rtId),
       getExpenses(rtId),
       getAnnouncements(rtId),
+      getMeetingNotes(rtId),
       getAppointments(rtId),
     ]);
     const [
@@ -53,6 +57,7 @@ export function useDashboardState(user: AuthUser) {
       contributionResult,
       expenseResult,
       announcementResult,
+      meetingNoteResult,
       appointmentResult,
     ] = results;
     const failedModules: string[] = [];
@@ -72,6 +77,9 @@ export function useDashboardState(user: AuthUser) {
     if (announcementResult.status === "fulfilled")
       setAnnouncements(announcementResult.value);
     else failedModules.push("pengumuman");
+    if (meetingNoteResult.status === "fulfilled")
+      setMeetingNotes(meetingNoteResult.value);
+    else failedModules.push("notulen rapat");
     if (appointmentResult.status === "fulfilled")
       setAppointments(appointmentResult.value);
     else failedModules.push("janji temu");
@@ -118,6 +126,8 @@ export function useDashboardState(user: AuthUser) {
     setExpenses,
     announcements,
     setAnnouncements,
+    meetingNotes,
+    setMeetingNotes,
     appointments,
     setAppointments,
     users,

@@ -69,6 +69,21 @@ export type Appointment = {
   updated_at: number;
 };
 
+export type MeetingNote = {
+  id: number;
+  rt_id: number;
+  title: string;
+  date: string;
+  agenda: string;
+  content: string;
+  created_by: string;
+  status?: "pending" | "approved";
+  approved_by?: string;
+  approved_at?: number;
+  created_at: number;
+  updated_at: number;
+};
+
 export type Role =
   | "superadmin"
   | "ketua"
@@ -299,6 +314,34 @@ export function createAnnouncement(
   return request<Announcement>(`/api/rts/${rtId}/announcements`, {
     method: "POST",
     body: JSON.stringify(announcement),
+  });
+}
+
+export function getMeetingNotes(rtId: number) {
+  return request<MeetingNote[]>(`/api/rts/${rtId}/meeting-notes`);
+}
+
+export function createMeetingNote(
+  rtId: number,
+  note: Pick<
+    MeetingNote,
+    "title" | "date" | "agenda" | "content" | "created_by"
+  >,
+) {
+  return request<MeetingNote>(`/api/rts/${rtId}/meeting-notes`, {
+    method: "POST",
+    body: JSON.stringify(note),
+  });
+}
+
+export function approveMeetingNote(
+  rtId: number,
+  noteId: number,
+  status: "approved" = "approved",
+) {
+  return request<MeetingNote>(`/api/rts/${rtId}/meeting-notes/${noteId}`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
   });
 }
 

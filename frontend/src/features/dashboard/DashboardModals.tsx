@@ -17,6 +17,7 @@ type DashboardModalsProps = {
   contributionOpen: boolean;
   expenseOpen: boolean;
   announcementOpen: boolean;
+  meetingNoteOpen: boolean;
   appointmentOpen: boolean;
   appointmentReviewOpen: boolean;
   selectedAppointment: Appointment | null;
@@ -32,6 +33,7 @@ type DashboardModalsProps = {
   onContributionSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onExpenseSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onAnnouncementSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onMeetingNoteSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onAppointmentSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onAppointmentReviewSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onUserSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -41,6 +43,7 @@ type DashboardModalsProps = {
   onCloseContribution: () => void;
   onCloseExpense: () => void;
   onCloseAnnouncement: () => void;
+  onCloseMeetingNote: () => void;
   onCloseAppointment: () => void;
   onCloseAppointmentReview: () => void;
   onCloseUser: () => void;
@@ -236,6 +239,52 @@ export function DashboardModals(props: DashboardModalsProps) {
             isSaving={props.isSaving}
             submit="Terbitkan pengumuman"
             onCancel={props.onCloseAnnouncement}
+          />
+        </form>
+      </SimpleModal>
+      <SimpleModal
+        open={props.meetingNoteOpen}
+        titleId="meeting-note-modal-title"
+        eyebrow="RAPAT"
+        title="Catat notulen rapat"
+        onClose={props.onCloseMeetingNote}
+      >
+        <form className={formClass} onSubmit={props.onMeetingNoteSubmit}>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Judul notulen
+            <input
+              required
+              className={fieldClass}
+              name="title"
+              placeholder="Contoh: Rapat rutin RT bulan September"
+            />
+          </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Tanggal rapat
+            <input required className={fieldClass} name="date" type="date" />
+          </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Agenda rapat
+            <input
+              className={fieldClass}
+              name="agenda"
+              placeholder="Contoh: Pembahasan iuran, kebersihan, dan kegiatan RW"
+            />
+          </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Isi notulen
+            <textarea
+              required
+              className={`min-h-[170px] ${fieldClass} leading-6`}
+              name="content"
+              rows={6}
+              placeholder="Tulis hasil rapat, keputusan, tugas, dan catatan penting..."
+            />
+          </label>
+          <FormActions
+            isSaving={props.isSaving}
+            submit="Simpan notulen"
+            onCancel={props.onCloseMeetingNote}
           />
         </form>
       </SimpleModal>
