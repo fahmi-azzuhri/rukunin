@@ -104,6 +104,11 @@ export type Area = {
   rw_id: number;
   name: string;
   chair: string;
+  province: string;
+  regency: string;
+  district: string;
+  village: string;
+  postal_code: string;
   rw?: { id: number; name: string };
 };
 
@@ -157,6 +162,11 @@ export function createManagedRT(input: {
   rt_name: string;
   chair_name: string;
   username: string;
+  province: string;
+  regency: string;
+  district: string;
+  village: string;
+  postal_code: string;
 }) {
   return request<{
     rt: Area;
