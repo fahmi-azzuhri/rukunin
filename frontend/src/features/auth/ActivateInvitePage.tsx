@@ -13,6 +13,7 @@ export function ActivateInvitePage({
   onLogin,
 }: ActivateInvitePageProps) {
   const navigate = useNavigate();
+  const [inviteToken, setInviteToken] = useState(token);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,15 +21,16 @@ export function ActivateInvitePage({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!token) {
-      setError("Tautan undangan tidak memiliki token.");
+    const trimmedToken = inviteToken.trim();
+    if (!trimmedToken) {
+      setError("Masukkan token undangan terlebih dahulu.");
       return;
     }
     setIsLoading(true);
     setError("");
     try {
       const result = await activateInvite(
-        token.trim(),
+        trimmedToken,
         username.trim(),
         password,
       );
@@ -65,9 +67,9 @@ export function ActivateInvitePage({
         <p className="mb-[26px] text-xs text-[#78847f]">
           Buat username dan password untuk mulai mengelola area RT Anda.
         </p>
-        {!token && (
+        {!inviteToken && (
           <div className="mb-5 rounded-[6px] border border-[#f0d6a8] bg-[#fff6e7] px-[15px] py-3 text-xs text-[#825e2d]">
-            Tautan undangan tidak valid karena token tidak ditemukan.
+            Masukkan token undangan untuk melanjutkan aktivasi akun.
           </div>
         )}
         {error && (
@@ -77,13 +79,23 @@ export function ActivateInvitePage({
         )}
         <form className="grid gap-[15px]" onSubmit={handleSubmit}>
           <label className="grid gap-1.5 text-[11px] font-bold text-[#68766f]">
+            Token undangan
+            <input
+              required
+              className="rounded-[5px] border border-[#e1e7e2] px-3 py-2.5 text-[13px]"
+              value={inviteToken}
+              onChange={(event) => setInviteToken(event.target.value)}
+              autoFocus
+              spellCheck={false}
+            />
+          </label>
+          <label className="grid gap-1.5 text-[11px] font-bold text-[#68766f]">
             Username
             <input
               required
               className="rounded-[5px] border border-[#e1e7e2] px-3 py-2.5 text-[13px]"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              autoFocus
             />
           </label>
           <label className="grid gap-1.5 text-[11px] font-bold text-[#68766f]">
