@@ -5,6 +5,7 @@ export type Role = AuthUser["role"];
 export const roleLabels: Record<Role, string> = {
   superadmin: "Superadmin",
   ketua: "Ketua RT",
+  ketua_rw: "Ketua RW",
   bendahara: "Bendahara",
   sekretaris: "Sekretaris",
   wakil: "Wakil RT",

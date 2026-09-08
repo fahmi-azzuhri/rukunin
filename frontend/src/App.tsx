@@ -11,6 +11,7 @@ import { Dashboard } from "./features/dashboard/Dashboard.tsx";
 import { ActivateInvitePage } from "./features/auth/ActivateInvitePage.tsx";
 import { SuperadminPage } from "./features/admin/SuperadminPage.tsx";
 import { LandingPage } from "./features/marketing/LandingPage.tsx";
+import { RwDashboardPage } from "./features/rw/RwDashboardPage.tsx";
 
 function App() {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser);
@@ -70,6 +71,14 @@ function AuthenticatedRoutes({
       <Routes>
         <Route path="/admin" element={<SuperadminPage onLogout={onLogout} />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+  if (user.role === "ketua_rw") {
+    return (
+      <Routes>
+        <Route path="/rw" element={<RwDashboardPage onLogout={onLogout} />} />
+        <Route path="*" element={<Navigate to="/rw" replace />} />
       </Routes>
     );
   }

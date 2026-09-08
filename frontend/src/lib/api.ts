@@ -87,6 +87,7 @@ export type MeetingNote = {
 export type Role =
   | "superadmin"
   | "ketua"
+  | "ketua_rw"
   | "bendahara"
   | "sekretaris"
   | "wakil"
@@ -94,6 +95,7 @@ export type Role =
 export type AuthUser = {
   id: number;
   rt_id: number;
+  rw_id?: number;
   username: string;
   name: string;
   role: Role;
@@ -101,7 +103,7 @@ export type AuthUser = {
 
 export type Area = {
   id: number;
-  rw_id: number;
+  rw_id?: number;
   name: string;
   chair: string;
   province: string;
@@ -109,7 +111,27 @@ export type Area = {
   district: string;
   village: string;
   postal_code: string;
-  rw?: { id: number; name: string };
+  rw?: {
+    id: number;
+    name: string;
+    province: string;
+    regency: string;
+    district: string;
+    village: string;
+    postal_code: string;
+  };
+};
+
+export type Rw = {
+  id: number;
+  name: string;
+  province: string;
+  regency: string;
+  district: string;
+  village: string;
+  postal_code: string;
+  max_rts: number;
+  rts?: Area[];
 };
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
@@ -158,7 +180,67 @@ export function activateInvite(
 }
 
 export function createManagedRT(input: {
+  rw_mode: "none" | "with_rw";
   rw_name: string;
+  rw_chair_name: string;
+  rw_username: string;
+  rt_name: string;
+  chair_name: string;
+  username: string;
+  province: string;
+  regency: string;
+  district: string;
+  village: string;
+  postal_code: string;
+  max_rts: number;
+}) {
+  return request<{
+    rt: Area;
+    chair: AuthUser;
+    invite_token: string;
+    expires_at: number;
+    rw: Rw;
+    rw_chair?: AuthUser;
+    rw_invite_token: string;
+  }>("/api/admin/rts", { method: "POST", body: JSON.stringify(input) });
+}
+
+export function createManagedRWAccount(input: {
+  rw_name: string;
+  chair_name: string;
+  username: string;
+  province: string;
+  regency: string;
+  district: string;
+  village: string;
+  postal_code: string;
+}) {
+  return request<{ invite_token: string }>("/api/admin/rw-account", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function getManagedAreas() {
+  return request<Area[]>("/api/admin/areas");
+}
+
+export function getRws() {
+  return request<Rw[]>("/api/rws");
+}
+
+export function updateRwLimit(rwId: number, maxRts: number) {
+  return request<Rw>(`/api/admin/rws/${rwId}/limit`, {
+    method: "PUT",
+    body: JSON.stringify({ max_rts: maxRts }),
+  });
+}
+
+export function getMyRw() {
+  return request<Rw & { rts: Area[] }>("/api/rw/me");
+}
+
+export function createRtForMyRw(input: {
   rt_name: string;
   chair_name: string;
   username: string;
@@ -168,12 +250,29 @@ export function createManagedRT(input: {
   village: string;
   postal_code: string;
 }) {
-  return request<{
-    rt: Area;
-    chair: AuthUser;
-    invite_token: string;
-    expires_at: number;
-  }>("/api/admin/rts", { method: "POST", body: JSON.stringify(input) });
+  return request<{ invite_token: string }>("/api/rw/rts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function createRw(
+  input: Pick<
+    Rw,
+    "name" | "province" | "regency" | "district" | "village" | "postal_code"
+  >,
+) {
+  return request<Rw>("/api/rws", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function assignRtToRw(rtId: number, rwId: number) {
+  return request<Area>(`/api/admin/rts/${rtId}/rw`, {
+    method: "PUT",
+    body: JSON.stringify({ rw_id: rwId }),
+  });
 }
 
 export function getCurrentUser() {
