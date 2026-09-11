@@ -370,6 +370,8 @@ export function createResident(
     Resident,
     "house_id" | "name" | "nik" | "no_kk" | "phone" | "status"
   > & {
+    house_number?: string;
+    address?: string;
     username?: string;
     password?: string;
     role?: Role;

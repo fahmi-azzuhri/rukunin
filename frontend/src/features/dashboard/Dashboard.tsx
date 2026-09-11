@@ -105,7 +105,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           no_kk: String(form.get("no_kk") ?? ""),
           phone: String(form.get("phone") ?? ""),
           status: String(form.get("status") ?? "Anggota"),
-          house_id: Number(form.get("house_id")),
+          house_id: Number(form.get("house_id")) || 0,
+          house_number: String(form.get("house_number") ?? ""),
+          address: String(form.get("address") ?? ""),
         };
         if (editing) await updateResident(state.rtId, editing.id, data);
         else {

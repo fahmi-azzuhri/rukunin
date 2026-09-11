@@ -28,16 +28,24 @@ export function ResidentModal({
     <Modal
       titleId="modal-title"
       onClose={onClose}
-      className="max-h-[calc(100vh_-_40px)] w-[min(520px,100%)] overflow-y-auto rounded-[9px] bg-white p-7 shadow-[0_20px_50px_#17382e24] [&_form]:grid [&_form]:gap-[15px] [&_label]:grid [&_label]:gap-1.5 [&_label]:text-[11px] [&_label]:font-bold [&_label]:text-[#68766f] [&_input]:rounded-[5px] [&_input]:border [&_input]:border-[#e1e7e2] [&_input]:p-[11px] [&_input]:text-[13px] [&_input]:outline-0 [&_select]:rounded-[5px] [&_select]:border [&_select]:border-[#e1e7e2] [&_select]:bg-white [&_select]:p-[11px] [&_select]:text-[13px] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:rounded-[5px] [&_textarea]:border [&_textarea]:border-[#e1e7e2] [&_textarea]:p-2.5 [&_textarea]:text-xs"
+      className="max-h-[calc(100vh_-_40px)] w-[min(560px,100%)] overflow-y-auto rounded-[10px] bg-white p-7 shadow-[0_20px_50px_#17382e24] [&_form]:grid [&_form]:gap-5 [&_label]:grid [&_label]:gap-2 [&_label]:text-[11px] [&_label]:font-bold [&_label]:text-[#68766f] [&_input]:rounded-[6px] [&_input]:border [&_input]:border-[#dce5df] [&_input]:bg-white [&_input]:p-3 [&_input]:text-[13px] [&_input]:outline-0 [&_input]:transition [&_input]:focus:border-[#236b4a] [&_select]:rounded-[6px] [&_select]:border [&_select]:border-[#dce5df] [&_select]:bg-white [&_select]:p-3 [&_select]:text-[13px] [&_select]:outline-0 [&_select]:focus:border-[#236b4a] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:rounded-[6px] [&_textarea]:border [&_textarea]:border-[#dce5df] [&_textarea]:p-3 [&_textarea]:text-[13px] [&_textarea]:outline-0 [&_textarea]:focus:border-[#236b4a]"
     >
-      <div className="mb-5 flex items-start justify-between border-b border-[#e1e7e2] pb-4">
+      <div className="mb-1 flex items-start justify-between border-b border-[#e1e7e2] pb-5">
         <div>
-          <span className="font-mono text-[10px] font-medium leading-none tracking-[1.1px] text-[#93a19a]">
-            DATA BARU
+          <span className="font-mono text-[10px] font-bold leading-none tracking-[1.1px] text-[#236b4a]">
+            DATABASE WARGA
           </span>
-          <h2 className="mt-2 text-lg tracking-[-0.5px]" id="modal-title">
+          <h2
+            className="mt-2 text-[22px] font-semibold tracking-[-0.6px] text-[#172522]"
+            id="modal-title"
+          >
             {resident ? "Edit warga" : "Tambah warga"}
           </h2>
+          <p className="mt-1.5 text-xs text-[#78847f]">
+            {resident
+              ? "Perbarui informasi warga dan penempatannya."
+              : "Tambahkan identitas warga beserta rumahnya."}
+          </p>
         </div>
         <button
           className="border-0 bg-transparent text-lg text-[#78847f]"
@@ -49,43 +57,80 @@ export function ResidentModal({
         </button>
       </div>
       <form onSubmit={onSubmit}>
-        <label>
-          Nama lengkap
-          <input
-            required
-            name="name"
-            placeholder="Contoh: Budi Santoso"
-            defaultValue={resident?.name ?? ""}
-          />
-        </label>
-        <label>
-          NIK
-          <input
-            name="nik"
-            inputMode="numeric"
-            placeholder="16 digit NIK"
-            defaultValue={resident?.nik ?? ""}
-          />
-        </label>
-        <div className="grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
+        <div className="border-b border-[#edf1ee] pb-1">
+          <p className="mb-3 font-mono text-[10px] font-bold tracking-[1px] text-[#93a19a]">
+            IDENTITAS
+          </p>
           <label>
-            No. rumah
-            <select
+            Nama lengkap
+            <input
               required
-              name="house_id"
-              defaultValue={resident?.house_id ?? ""}
-            >
-              <option value="" disabled>
-                Pilih rumah
-              </option>
-              {houses.map((house) => (
-                <option key={house.id} value={house.id}>
-                  Rumah {house.number}
-                </option>
-              ))}
-            </select>
+              name="name"
+              placeholder="Contoh: Budi Santoso"
+              defaultValue={resident?.name ?? ""}
+            />
           </label>
-          <label>
+          <div className="mt-4 grid grid-cols-2 gap-3 max-[500px]:grid-cols-1">
+            <label>
+              NIK
+              <input
+                name="nik"
+                inputMode="numeric"
+                placeholder="16 digit NIK"
+                defaultValue={resident?.nik ?? ""}
+              />
+            </label>
+            <label>
+              No. KK
+              <input
+                name="no_kk"
+                inputMode="numeric"
+                placeholder="Nomor kartu keluarga"
+                defaultValue={resident?.no_kk ?? ""}
+              />
+            </label>
+          </div>
+        </div>
+        <div className="border-b border-[#edf1ee] pb-1">
+          <p className="mb-3 font-mono text-[10px] font-bold tracking-[1px] text-[#93a19a]">
+            DOMISILI
+          </p>
+          {!resident ? (
+            <>
+              <label>
+                Alamat rumah
+                <textarea
+                  required
+                  name="address"
+                  rows={3}
+                  placeholder="Contoh: Jl. Melati 2"
+                />
+              </label>
+              <label className="mt-2">
+                Nomor rumah
+                <input required name="house_number" placeholder="Contoh: 12A" />
+              </label>
+            </>
+          ) : (
+            <label>
+              No. rumah
+              <select
+                required
+                name="house_id"
+                defaultValue={resident?.house_id ?? ""}
+              >
+                <option value="" disabled>
+                  Pilih rumah
+                </option>
+                {houses.map((house) => (
+                  <option key={house.id} value={house.id}>
+                    Rumah {house.number}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <label className="mt-2">
             Status
             <select name="status" defaultValue={resident?.status ?? "Anggota"}>
               <option>Kepala Keluarga</option>
@@ -93,32 +138,25 @@ export function ResidentModal({
               <option>Tamu</option>
             </select>
           </label>
+          <label className="mt-2">
+            No. telepon
+            <input
+              name="phone"
+              inputMode="tel"
+              placeholder="08xx-xxxx-xxxx"
+              defaultValue={resident?.phone ?? ""}
+            />
+          </label>
         </div>
-        <label>
-          No. telepon
-          <input
-            name="phone"
-            inputMode="tel"
-            placeholder="08xx-xxxx-xxxx"
-            defaultValue={resident?.phone ?? ""}
-          />
-        </label>
-        <label>
-          No. KK
-          <input
-            name="no_kk"
-            inputMode="numeric"
-            placeholder="Nomor kartu keluarga"
-            defaultValue={resident?.no_kk ?? ""}
-          />
-        </label>
+
         {!resident && role === "ketua" && (
-          <fieldset className="grid gap-4 rounded-[8px] border border-[#dcefe3] bg-[#f7fbf8] p-4">
-            <legend className="px-1 font-mono text-[10px] font-medium tracking-[1px] text-[#236b4a]">
-              AKUN LOGIN (OPSIONAL)
+          <fieldset className="grid gap-4 rounded-[8px] border border-[#cce3d4] bg-[#f5fbf7] p-5">
+            <legend className="px-1 font-mono text-[10px] font-bold tracking-[1px] text-[#236b4a]">
+              AKSES APLIKASI
             </legend>
-            <p className="-mt-1 text-[11px] leading-5 text-[#78847f]">
-              Isi jika warga ini juga perlu akses ke aplikasi.
+            <p className="-mt-1 text-[11px] leading-5 text-[#68766f]">
+              Opsional. Isi username, password, dan role jika warga ini perlu
+              login.
             </p>
             <label>
               Username

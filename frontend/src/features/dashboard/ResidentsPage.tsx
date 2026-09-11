@@ -73,15 +73,6 @@ export function ResidentsPage({
         <div className="flex gap-[9px]">
           {canManageResidents && (
             <button
-              className="inline-flex items-center gap-[9px] rounded-[6px] border border-[#d3ddd6] bg-transparent px-3.5 py-[11px] text-xs font-extrabold text-[#236b4a]"
-              onClick={onAddHouse}
-              type="button"
-            >
-              <span>+</span> Tambah rumah
-            </button>
-          )}
-          {canManageResidents && (
-            <button
               className="inline-flex items-center gap-[9px] rounded-[6px] border-0 bg-[#236b4a] px-4 py-[11px] text-xs font-extrabold text-white shadow-[0_5px_12px_#236b4a22] hover:bg-[#18563a]"
               onClick={onAddResident}
               type="button"
