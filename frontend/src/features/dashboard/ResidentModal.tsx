@@ -124,7 +124,7 @@ export function ResidentModal({
                 </option>
                 {houses.map((house) => (
                   <option key={house.id} value={house.id}>
-                    Rumah {house.number}
+                    {house.number}
                   </option>
                 ))}
               </select>
