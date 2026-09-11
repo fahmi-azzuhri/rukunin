@@ -570,10 +570,20 @@ export function SuperadminPage({ onLogout }: { onLogout: () => void }) {
             {mode === "rt-only" ? "Kode pos RT" : "Kode pos RW"}
             <input
               required
-              readOnly
+              inputMode="numeric"
+              maxLength={5}
+              pattern="[0-9]{5}"
               value={form.postal_code}
-              placeholder="Terisi otomatis dari kelurahan"
-              className="rounded-[7px] border border-[#d3ddd6] bg-[#f7f9f6] px-3.5 py-3 text-[13px]"
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  postal_code: event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 5),
+                })
+              }
+              placeholder="Terisi otomatis, atau tulis manual"
+              className="rounded-[7px] border border-[#d3ddd6] px-3.5 py-3 text-[13px]"
             />
           </label>
           {mode === "rt-with-rw" && (

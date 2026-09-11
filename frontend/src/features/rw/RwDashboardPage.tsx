@@ -278,10 +278,20 @@ export function RwDashboardPage({ onLogout }: { onLogout: () => void }) {
                 </select>
                 <input
                   required
-                  readOnly
-                  placeholder="Kode pos terisi otomatis"
-                  className="rounded-[7px] border border-[#d3ddd6] bg-[#f7f9f6] px-3.5 py-3 text-[13px]"
+                  inputMode="numeric"
+                  maxLength={5}
+                  pattern="[0-9]{5}"
+                  placeholder="Terisi otomatis, atau tulis manual"
+                  className="rounded-[7px] border border-[#d3ddd6] px-3.5 py-3 text-[13px]"
                   value={form.postal_code}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      postal_code: event.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 5),
+                    })
+                  }
                 />
                 <button
                   disabled={isSaving}
