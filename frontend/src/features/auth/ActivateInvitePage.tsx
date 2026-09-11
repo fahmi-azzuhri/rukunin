@@ -35,9 +35,16 @@ export function ActivateInvitePage({
         password,
       );
       onLogin(result.user, result.token);
-      navigate(result.user.role === "superadmin" ? "/admin" : "/warga", {
-        replace: true,
-      });
+      navigate(
+        result.user.role === "superadmin"
+          ? "/admin"
+          : result.user.role === "ketua" && !result.user.resident_id
+            ? "/onboarding/resident"
+            : result.user.role === "ketua_rw"
+              ? "/rw"
+              : "/warga",
+        { replace: true },
+      );
     } catch (activationError) {
       setError(
         activationError instanceof Error

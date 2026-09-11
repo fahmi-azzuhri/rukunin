@@ -137,6 +137,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         const number = String(form.get("number") ?? "")
           .trim()
           .toUpperCase();
+        const address = String(form.get("address") ?? "").trim();
         if (
           state.houses.some(
             (item) =>
@@ -146,8 +147,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           throw new Error(
             `Nomor rumah ${number} sudah terdaftar di ${rtName}.`,
           );
-        if (editing) await updateHouse(state.rtId, editing.id, number);
-        else await createHouse(state.rtId, number);
+        if (editing) await updateHouse(state.rtId, editing.id, number, address);
+        else await createHouse(state.rtId, number, address);
       },
       "Rumah gagal disimpan",
       async () => {

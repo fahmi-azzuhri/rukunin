@@ -11,6 +11,7 @@ export type Resident = {
 export type House = {
   id: number;
   number: string;
+  address?: string;
   residents?: Resident[];
 };
 
@@ -99,6 +100,7 @@ export type AuthUser = {
   username: string;
   name: string;
   role: Role;
+  resident_id?: number;
 };
 
 export type Area = {
@@ -177,6 +179,19 @@ export function activateInvite(
     method: "POST",
     body: JSON.stringify({ token, username, password }),
   });
+}
+
+export function completeResidentOnboarding(input: {
+  address: string;
+  house_number: string;
+  nik: string;
+  no_kk: string;
+  phone: string;
+}) {
+  return request<{ user: AuthUser; resident: Resident }>(
+    "/api/auth/onboarding/resident",
+    { method: "POST", body: JSON.stringify(input) },
+  );
 }
 
 export function createManagedRT(input: {
@@ -324,17 +339,22 @@ export function getHouses(rtId: number) {
   return request<House[]>(`/api/rts/${rtId}/houses`);
 }
 
-export function createHouse(rtId: number, number: string) {
+export function createHouse(rtId: number, number: string, address: string) {
   return request<House>(`/api/rts/${rtId}/houses`, {
     method: "POST",
-    body: JSON.stringify({ number }),
+    body: JSON.stringify({ number, address }),
   });
 }
 
-export function updateHouse(rtId: number, houseId: number, number: string) {
+export function updateHouse(
+  rtId: number,
+  houseId: number,
+  number: string,
+  address: string,
+) {
   return request<House>(`/api/rts/${rtId}/houses/${houseId}`, {
     method: "PUT",
-    body: JSON.stringify({ number }),
+    body: JSON.stringify({ number, address }),
   });
 }
 

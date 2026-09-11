@@ -95,6 +95,17 @@ export function DashboardModals(props: DashboardModalsProps) {
               defaultValue={props.house?.number ?? ""}
             />
           </label>
+          <label className="grid gap-2 text-[11px] font-bold text-[#68766f]">
+            Alamat rumah
+            <textarea
+              required
+              rows={3}
+              className={`${fieldClass} resize-y`}
+              name="address"
+              placeholder="Contoh: Jl. Melati No. 12"
+              defaultValue={props.house?.address ?? ""}
+            />
+          </label>
           <FormActions
             isSaving={props.isSaving}
             submit={props.house ? "Simpan perubahan" : "Simpan rumah"}

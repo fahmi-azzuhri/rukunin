@@ -9,6 +9,7 @@ import {
 } from "./features/auth/authStorage.ts";
 import { Dashboard } from "./features/dashboard/Dashboard.tsx";
 import { ActivateInvitePage } from "./features/auth/ActivateInvitePage.tsx";
+import { ResidentOnboardingPage } from "./features/auth/ResidentOnboardingPage.tsx";
 import { SuperadminPage } from "./features/admin/SuperadminPage.tsx";
 import { LandingPage } from "./features/marketing/LandingPage.tsx";
 import { RwDashboardPage } from "./features/rw/RwDashboardPage.tsx";
@@ -48,7 +49,11 @@ function App() {
           path="*"
           element={
             user ? (
-              <AuthenticatedRoutes user={user} onLogout={handleLogout} />
+              <AuthenticatedRoutes
+                user={user}
+                onLogout={handleLogout}
+                onLogin={handleLogin}
+              />
             ) : (
               <Navigate to="/" replace />
             )
@@ -62,15 +67,31 @@ function App() {
 function AuthenticatedRoutes({
   user,
   onLogout,
+  onLogin,
 }: {
   user: AuthUser;
   onLogout: () => void;
+  onLogin: (user: AuthUser, token: string) => void;
 }) {
   if (user.role === "superadmin") {
     return (
       <Routes>
         <Route path="/admin" element={<SuperadminPage onLogout={onLogout} />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+  if (user.role === "ketua" && !user.resident_id) {
+    return (
+      <Routes>
+        <Route
+          path="/onboarding/resident"
+          element={<ResidentOnboardingPage user={user} onComplete={onLogin} />}
+        />
+        <Route
+          path="*"
+          element={<Navigate to="/onboarding/resident" replace />}
+        />
       </Routes>
     );
   }

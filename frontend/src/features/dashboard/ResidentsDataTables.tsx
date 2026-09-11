@@ -130,13 +130,14 @@ export function ResidentsDataTables({
               <thead>
                 <tr>
                   <th>NOMOR RUMAH</th>
+                  <th>ALAMAT</th>
                   <th>JUMLAH WARGA</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {houses.length === 0 ? (
-                  <EmptyRow colSpan={3} text="Belum ada rumah." />
+                  <EmptyRow colSpan={4} text="Belum ada rumah." />
                 ) : (
                   houses.map((house) => (
                     <tr key={house.id}>
@@ -145,6 +146,7 @@ export function ResidentsDataTables({
                           {house.number}
                         </span>
                       </td>
+                      <td>{house.address || "-"}</td>
                       <td>
                         {house.residents?.length ??
                           residents.filter(
