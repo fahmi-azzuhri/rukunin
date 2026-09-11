@@ -75,8 +75,8 @@ export function ResidentOnboardingPage({
           Lengkapi data warga
         </h1>
         <p className="mb-[26px] text-xs text-[#78847f]">
-          Halo {user.name}. Data ini diperlukan agar pembayaran iuran Anda
-          tercatat sebagai warga.
+          Halo {user.name}. Lengkapi data diri dan alamat rumah Anda untuk
+          melanjutkan ke dashboard RT.
         </p>
         {error && (
           <div className="mb-5 rounded-[6px] border border-[#f0d6a8] bg-[#fff6e7] px-[15px] py-3 text-xs text-[#825e2d]">
