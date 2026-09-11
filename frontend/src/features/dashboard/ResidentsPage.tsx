@@ -27,7 +27,6 @@ type ResidentsPageProps = {
   onFilterChange: (value: string) => void;
   onRetry: () => void;
   onAddResident: () => void;
-  onAddHouse: () => void;
   onEditResident: (resident: Resident) => void;
   onDeleteResident: (resident: Resident) => void;
   onEditHouse: (house: House) => void;
@@ -59,7 +58,6 @@ export function ResidentsPage({
   onFilterChange,
   onRetry,
   onAddResident,
-  onAddHouse,
   onEditResident,
   onDeleteResident,
   onEditHouse,

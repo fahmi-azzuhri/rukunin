@@ -483,10 +483,6 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
               setResident(null);
               setOpenModal("resident");
             }}
-            onAddHouse={() => {
-              setHouse(null);
-              setOpenModal("house");
-            }}
             onEditResident={(item) => {
               setResident(item);
               setOpenModal("resident");
