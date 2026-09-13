@@ -136,7 +136,7 @@ export type Rw = {
   rts?: Area[];
 };
 
-const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const headers = new Headers(options?.headers);
